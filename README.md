@@ -9,18 +9,22 @@ Este sistema implementa um pipeline completo para processamento de documentos mu
 ### 🏗️ Arquitetura
 
 ```
-📁 sistema_rag/
-├── 📁 config/           # Configurações globais
-├── 📁 models/           # Modelos de dados
-├── 📁 utils/            # Utilitários e helpers
-├── 📁 components/       # Componentes modulares
-│   ├── 📁 ingestion/    # Ingestão de documentos
-│   ├── 📁 processing/   # Processamento de documentos
-│   ├── 📁 embeddings/   # Geração de embeddings
-│   ├── 📁 storage/      # Armazenamento (R2 + Astra DB)
-│   ├── 📁 retrieval/    # Busca e recuperação
-│   └── 📁 generation/   # Geração de respostas
-└── 📁 examples/         # Exemplos de uso
+📁 sistemarag/
+├── 📄 ingestao.py       # 🚀 Comando de ingestão
+├── 📄 busca.py          # 🔍 Comando de busca
+└── 📁 sistema_rag/      # 🏗️ Sistema centralizado
+    ├── 📄 run_pipeline.py    # Pipeline interno
+    ├── 📁 config/            # Configurações globais
+    ├── 📁 models/            # Modelos de dados
+    ├── 📁 utils/             # Utilitários e helpers
+    ├── 📁 components/        # Componentes modulares
+    │   ├── 📁 ingestion/     # Ingestão de documentos
+    │   ├── 📁 processing/    # Processamento de documentos
+    │   ├── 📁 embeddings/    # Geração de embeddings
+    │   ├── 📁 storage/       # Armazenamento (R2 + Astra DB)
+    │   ├── 📁 retrieval/     # Busca e recuperação
+    │   └── 📁 generation/    # Geração de respostas
+    └── 📁 examples/          # Exemplos de uso
 ```
 
 ## 🔧 Componentes Implementados
@@ -40,7 +44,7 @@ Este sistema implementa um pipeline completo para processamento de documentos mu
 - **Cloudflare R2 Uploader** - Upload otimizado de imagens
 - **Astra DB Inserter** - Inserção otimizada no Astra DB
 
-### ✅ Sistema de Busca (NOVO!)
+### ✅ Sistema de Busca Modular
 - **RAG Pipeline** - Pipeline completo de busca e resposta
 - **Query Transformer** - Transformação inteligente de queries conversacionais
 - **Vector Searcher** - Busca vetorial otimizada no Astra DB
@@ -289,20 +293,27 @@ R2_AUTH_TOKEN=your-secret-token-123
 
 ## 🚀 Uso Básico
 
-### Sistema RAG Completo (Ingestão + Busca)
+### 📋 Comandos Principais
 
 ```bash
-# Pipeline completo de ingestão
-python run_pipeline.py
+# 🚀 Ingestão de documentos
+python ingestao.py
 
-# Sistema de busca conversacional
-python -m sistema_rag.examples.conversational_rag
+# 🔍 Busca/consulta
+python busca.py
+```
 
-# Exemplos de busca
-python -m sistema_rag.examples.basic_search
+### 🧪 Comandos de Teste
 
+```bash
 # Teste rápido das APIs
-python run_pipeline.py test
+python -m sistema_rag.run_pipeline test
+
+# Pipeline completo de ingestão (alternativo)
+python -m sistema_rag.run_pipeline
+
+# Sistema de busca conversacional (avançado)
+python -m sistema_rag.examples.conversational_rag
 ```
 
 ### 🔍 Sistema de Busca - Interface Simples
@@ -368,12 +379,32 @@ python -m sistema_rag.examples.conversational_rag
 - `/stats` - Estatísticas do sistema
 - `/extract {"campo": ""}` - Extração de dados
 
-### Pipeline Completo de Ingestão
+## 🎯 Exemplo Prático
+
+### Ingestão do Cardápio
 
 ```bash
-# Demo do modo multimodal  
-python -m sistema_rag.examples.basic_usage demo
+# Processa cardápio American Burger
+python ingestao.py
 ```
+
+**Resultado:**
+- ✅ 2 páginas processadas
+- 🖼️ Imagens no Cloudflare R2
+- 🧬 Embeddings no Astra DB
+
+### Busca no Cardápio
+
+```bash
+# Busca itens do menu
+python busca.py
+```
+
+**Exemplos de perguntas testadas:**
+- 🍔 "hambúrguer de frango" → Score: 0.724
+- 🍰 "sobremesas" → Score: 0.686
+- 💰 "preços" → Score: 0.609
+- 🥤 "bebidas" → Score: 0.628
 
 ### Modo Multimodal LlamaParse
 
@@ -494,30 +525,23 @@ reranked = reranker.rerank_results("query", search_results)
 ### Teste Rápido das APIs
 
 ```bash
-python -m sistema_rag.examples.basic_usage test
+# Teste completo do sistema
+python -m sistema_rag.run_pipeline test
 ```
 
-### Teste de Componente Individual
+### Diagnóstico de Problemas
 
-```python
-# Testar conexões de armazenamento
-from sistema_rag.components.storage import test_astra_connection, test_r2_connection
+```bash
+# Verificar variáveis de ambiente
+cat .env | grep -E "(VOYAGE|ASTRA|R2)"
 
-# Teste Astra DB
-astra_test = test_astra_connection(endpoint, token, collection)
-print(astra_test)
-
-# Teste R2
-r2_test = test_r2_connection(endpoint, token)
-print(r2_test)
-
-# Testar pipeline de busca
-from sistema_rag import RAGPipeline
-
-pipeline = RAGPipeline()
-test_result = pipeline.test_pipeline()
-print(f"Pipeline: {'✅' if test_result.success else '❌'}")
-print(test_result.details)
+# Testar componentes individualmente
+python -c "
+from dotenv import load_dotenv; load_dotenv()
+from sistema_rag.components.retrieval import VectorSearcher
+searcher = VectorSearcher()
+print(searcher.test_connection().message)
+"
 ```
 
 ## 📊 Estratégias de Chunking
@@ -578,51 +602,50 @@ print(test_result.details)
 }
 ```
 
-## 🆚 Sistema de Busca: exemplo.py vs Modular
+## 📊 Performance e Melhorias
 
-| Aspecto | exemplo.py | Sistema Modular |
-|---------|------------|-----------------|
-| **Arquitetura** | Monolítico | Modular |
-| **Imagens** | Locais (base64) | Cloudflare R2 |
-| **Cache** | Básico | Inteligente |
-| **Fallbacks** | Limitados | Robustos |
-| **Testabilidade** | Difícil | Fácil |
-| **Manutenibilidade** | Baixa | Alta |
-| **Performance** | Boa | Otimizada |
-| **Configurabilidade** | Limitada | Flexível |
+### ⚡ Otimizações Implementadas
 
-### 🚨 Migração Simples
+| **Componente** | **Melhoria** | **Benefício** |
+|----------------|--------------|---------------|
+| **Arquitetura** | Modular | Escalabilidade e manutenibilidade |
+| **Imagens** | Cloudflare R2 | URLs diretas vs base64 |
+| **Cache** | Inteligente | Reduz chamadas de API |
+| **Fallbacks** | Robustos | Alta disponibilidade |
+| **Busca** | Vetorial + IA | Precisão otimizada |
 
-**Antes (exemplo.py):**
-```python
-from exemplo import ProductionConversationalRAG
-rag = ProductionConversationalRAG()
-resposta = rag.ask("Como funciona o Zep?")
+### 🚀 Comandos Simplificados
+
+**Sistema atual:**
+```bash
+# Ingestão
+python ingestao.py
+
+# Busca
+python busca.py
 ```
 
-**Depois (Sistema Modular):**
-```python
-from sistema_rag import SimpleRAG
-rag = SimpleRAG()
-resposta = rag.search("Como funciona o Zep?")
-```
-
-### ⚡ Performance Melhoradas
+### 📈 Resultados de Performance
 - **Cache de Queries**: Reduz chamadas à IA em 60-80%
 - **Classificação Determinística**: Evita IA para queries simples
 - **Cache de Imagens**: Reduz downloads do R2
 - **Re-ranking Otimizado**: Seleção mais precisa
 
-## 🗺️ Roadmap
+## 🗺️ Status do Projeto
 
-- [x] **Sistema de Busca Vetorial** - Busca multimodal no Astra DB ✅
-- [x] **GPT Reranker** - Reordenação com GPT-4o ✅
-- [x] **Enhanced Agent** - Geração de respostas contextualizadas ✅
-- [x] **Cache Inteligente** - Cache de transformações e imagens ✅
+### ✅ Componentes Completos
+- [x] **Sistema de Ingestão** - Pipeline completo com LlamaParse
+- [x] **Sistema de Busca** - Busca vetorial multimodal
+- [x] **Armazenamento** - Astra DB + Cloudflare R2
+- [x] **Embeddings** - Voyage AI multimodal
+- [x] **Cache Inteligente** - Otimizações de performance
+- [x] **Arquitetura Modular** - Componentes independentes
+
+### 🚧 Roadmap Futuro
 - [ ] **Interface Web** - Dashboard para interação
-- [ ] **Métricas Avançadas** - Monitoring e analytics detalhados
+- [ ] **Métricas Avançadas** - Monitoring e analytics
 - [ ] **Multi-idioma** - Suporte a múltiplos idiomas
-- [ ] **Embeddings Locais** - Opção para embeddings open-source
+- [ ] **Embeddings Locais** - Opção open-source
 
 ## 🤝 Contribuição
 
@@ -638,12 +661,26 @@ MIT License - veja LICENSE para detalhes.
 
 ## 🆘 Suporte
 
-Para dúvidas sobre:
+### 🔧 Comandos de Diagnóstico
+
+```bash
+# Teste geral do sistema
+python -m sistema_rag.run_pipeline test
+
+# Verificar variáveis de ambiente
+cat .env | grep -E "(VOYAGE|ASTRA|R2)"
+
+# Testar busca específica
+python busca.py
+```
+
+### 📞 Para Dúvidas
+
 - **APIs**: Consulte documentação oficial de cada serviço
 - **Configuração**: Verifique `.env.example` e variáveis
-- **Erros**: Execute teste rápido para diagnosticar conexões
-- **Performance**: Ajuste batch_size e timeouts conforme necessário
+- **Erros**: Execute `python -m sistema_rag.run_pipeline test`
+- **Performance**: Ajuste configurações no `sistema_rag/config/`
 
 ---
 
-🔥 **Sistema RAG Multimodal - Estado da Arte em Python Puro**
+🔥 **Sistema RAG Multimodal - Arquitetura Modular Completa**

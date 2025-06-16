@@ -15,8 +15,8 @@ except ImportError:
     print("⚠️  python-dotenv não instalado. Usando variáveis do sistema.")
 
 # Importar e executar pipeline
-sys.path.append('.')
-from sistema_rag.examples.basic_usage import basic_rag_pipeline, quick_test
+sys.path.append('..')
+from .examples.basic_usage import basic_rag_pipeline, quick_test
 
 
 def main():
