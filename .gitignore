@@ -42,8 +42,6 @@ build/
 
 # Arquivos de ambiente
 .env
-.env.*
-.env.example
 
 # Arquivos de lock de ferramentas alternativas
 poetry.lock
