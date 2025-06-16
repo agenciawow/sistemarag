@@ -13,5 +13,17 @@ Componentes principais:
 - Generation: Resposta final com contexto multimodal
 """
 
+from .components.retrieval import RAGPipeline, create_rag_pipeline, search_and_answer
+from .examples.conversational_rag import ModularConversationalRAG, SimpleRAG
+
+# Interfaces principais para uso externo
+__all__ = [
+    'RAGPipeline',
+    'create_rag_pipeline', 
+    'search_and_answer',
+    'ModularConversationalRAG',
+    'SimpleRAG'
+]
+
 __version__ = "1.0.0"
 __author__ = "Sistema RAG Team"
