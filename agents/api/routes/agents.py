@@ -4,10 +4,11 @@ Rotas para agentes com descoberta automática
 Inspirado no padrão do framework Agno para descoberta dinâmica.
 """
 
-from fastapi import APIRouter, HTTPException, BackgroundTasks, Depends
+from fastapi import APIRouter, HTTPException, Depends
 from typing import Dict, Any, List, Optional
 from pydantic import BaseModel
 import logging
+import inspect
 from datetime import datetime
 
 from agents.core.operator import agent_operator
@@ -100,10 +101,16 @@ async def ask_agent(agent_id: str, request: AgentRequest, api_key: str = Depends
     """
     try:
         # Validar parâmetros obrigatórios do Zep
-        if not request.user_id or not request.user_id.strip():
-            raise HTTPException(status_code=400, detail="user_id é obrigatório")
-        if not request.session_id or not request.session_id.strip():
-            raise HTTPException(status_code=400, detail="session_id é obrigatório")
+        if not request.user_id or not request.user_id.strip() or len(request.user_id.strip()) < 3:
+            raise HTTPException(status_code=400, detail="user_id é obrigatório e deve ter pelo menos 3 caracteres")
+        if not request.session_id or not request.session_id.strip() or len(request.session_id.strip()) < 3:
+            raise HTTPException(status_code=400, detail="session_id é obrigatório e deve ter pelo menos 3 caracteres")
+        
+        # Validar caracteres alfanuméricos (segurança)
+        if not request.user_id.replace("-", "").replace("_", "").isalnum():
+            raise HTTPException(status_code=400, detail="user_id deve conter apenas letras, números, hífens e underscores")
+        if not request.session_id.replace("-", "").replace("_", "").isalnum():
+            raise HTTPException(status_code=400, detail="session_id deve conter apenas letras, números, hífens e underscores")
         
         if not agent_operator.agent_exists(agent_id):
             raise HTTPException(status_code=404, detail=f"Agente '{agent_id}' não encontrado")
@@ -118,7 +125,6 @@ async def ask_agent(agent_id: str, request: AgentRequest, api_key: str = Depends
         # Fazer pergunta ao agente COM Zep (sempre)
         if hasattr(agent, 'ask'):
             # Verificar se o agente suporta user_id e session_id
-            import inspect
             sig = inspect.signature(agent.ask)
             
             if 'user_id' in sig.parameters and 'session_id' in sig.parameters:

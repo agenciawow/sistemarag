@@ -61,8 +61,8 @@ class ZepClient:
             api_key: Chave da API Zep (usa variável de ambiente se não fornecida)
         """
         self.api_key = api_key or os.getenv("ZEP_API_KEY")
-        if not self.api_key:
-            raise ValueError("ZEP_API_KEY não encontrada nas variáveis de ambiente")
+        if not self.api_key or not self.api_key.strip():
+            raise ValueError("ZEP_API_KEY não encontrada ou está vazia nas variáveis de ambiente")
         
         # Inicializar cliente oficial do Zep
         self.client = Zep(api_key=self.api_key)
@@ -377,7 +377,13 @@ def get_zep_client() -> ZepClient:
     if zep_client is None:
         try:
             zep_client = ZepClient()
+            logger.info("Cliente Zep inicializado com sucesso")
+        except ValueError as e:
+            # Erro de configuração - crítico
+            logger.error(f"Erro de configuração do Zep: {e}")
+            raise e
         except Exception as e:
+            # Outros erros - warning mas não falha
             logger.warning(f"Não foi possível inicializar cliente Zep: {e}")
             zep_client = None
     

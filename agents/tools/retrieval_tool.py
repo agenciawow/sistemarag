@@ -67,7 +67,7 @@ class RetrievalTool:
             "VOYAGE_API_KEY", "OPENAI_API_KEY",
             "ASTRA_DB_API_ENDPOINT", "ASTRA_DB_APPLICATION_TOKEN"
         ]
-        missing_vars = [var for var in required_vars if not os.getenv(var)]
+        missing_vars = [var for var in required_vars if not os.getenv(var) or not os.getenv(var).strip()]
         if missing_vars:
             raise ValueError(f"Variáveis de ambiente ausentes: {missing_vars}")
         

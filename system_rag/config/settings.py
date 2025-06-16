@@ -2,9 +2,13 @@
 Configurações globais do Sistema RAG
 """
 import os
-from typing import Optional
+import logging
+from typing import Optional, List
 from dataclasses import dataclass
 from dotenv import load_dotenv
+
+# Configurar logging
+logger = logging.getLogger(__name__)
 
 # Carrega variáveis de ambiente do arquivo .env
 load_dotenv()
@@ -22,7 +26,7 @@ class APISettings:
     r2_auth_token: Optional[str] = None
 
     def __post_init__(self):
-        """Carrega variáveis de ambiente se não fornecidas"""
+        """Carrega variáveis de ambiente se não fornecidas e valida configurações críticas"""
         if not self.openai_api_key:
             self.openai_api_key = os.getenv("OPENAI_API_KEY")
         if not self.voyage_api_key:
@@ -37,6 +41,44 @@ class APISettings:
             self.r2_endpoint = os.getenv("R2_ENDPOINT")
         if not self.r2_auth_token:
             self.r2_auth_token = os.getenv("R2_AUTH_TOKEN")
+        
+        # Validar configurações críticas
+        self._validate_critical_settings()
+    
+    def _validate_critical_settings(self):
+        """Valida e alerta sobre configurações críticas ausentes"""
+        critical_missing = []
+        warnings = []
+        
+        # APIs críticas para funcionamento básico
+        if not self.openai_api_key or not self.openai_api_key.strip():
+            critical_missing.append("OPENAI_API_KEY")
+        if not self.voyage_api_key or not self.voyage_api_key.strip():
+            critical_missing.append("VOYAGE_API_KEY")
+        if not self.astra_db_token or not self.astra_db_token.strip():
+            critical_missing.append("ASTRA_DB_APPLICATION_TOKEN")
+        if not self.astra_db_api_endpoint or not self.astra_db_api_endpoint.strip():
+            critical_missing.append("ASTRA_DB_API_ENDPOINT")
+        
+        # APIs opcionais mas recomendadas
+        if not self.llama_cloud_api_key or not self.llama_cloud_api_key.strip():
+            warnings.append("LLAMA_CLOUD_API_KEY (opcional para processamento de documentos)")
+        if not self.r2_endpoint or not self.r2_endpoint.strip():
+            warnings.append("R2_ENDPOINT (opcional para armazenamento de imagens)")
+        if not self.r2_auth_token or not self.r2_auth_token.strip():
+            warnings.append("R2_AUTH_TOKEN (opcional para armazenamento de imagens)")
+        
+        # Log críticos
+        if critical_missing:
+            logger.warning(f"⚠️ Configurações CRÍTICAS ausentes: {', '.join(critical_missing)}")
+            logger.warning("O sistema pode não funcionar corretamente. Configure as variáveis no arquivo .env")
+        
+        # Log warnings
+        if warnings:
+            logger.info(f"💡 Configurações opcionais ausentes: {', '.join(warnings)}")
+        
+        if not critical_missing and not warnings:
+            logger.info("✅ Todas as configurações estão válidas")
 
 
 @dataclass
@@ -119,15 +161,20 @@ class OpenAIModelSettings:
         self.answer_generation_model = os.getenv("OPENAI_ANSWER_GENERATION_MODEL", self.answer_generation_model)
         self.extraction_model = os.getenv("OPENAI_EXTRACTION_MODEL", self.extraction_model)
         
-        # Temperaturas
-        if os.getenv("OPENAI_RERANK_TEMPERATURE"):
-            self.rerank_temperature = float(os.getenv("OPENAI_RERANK_TEMPERATURE"))
-        if os.getenv("OPENAI_QUERY_TRANSFORM_TEMPERATURE"):
-            self.query_transform_temperature = float(os.getenv("OPENAI_QUERY_TRANSFORM_TEMPERATURE"))
-        if os.getenv("OPENAI_ANSWER_GENERATION_TEMPERATURE"):
-            self.answer_generation_temperature = float(os.getenv("OPENAI_ANSWER_GENERATION_TEMPERATURE"))
-        if os.getenv("OPENAI_EXTRACTION_TEMPERATURE"):
-            self.extraction_temperature = float(os.getenv("OPENAI_EXTRACTION_TEMPERATURE"))
+        # Temperaturas (com validação de float)
+        self._safe_float_env("OPENAI_RERANK_TEMPERATURE", "rerank_temperature")
+        self._safe_float_env("OPENAI_QUERY_TRANSFORM_TEMPERATURE", "query_transform_temperature")
+        self._safe_float_env("OPENAI_ANSWER_GENERATION_TEMPERATURE", "answer_generation_temperature")
+        self._safe_float_env("OPENAI_EXTRACTION_TEMPERATURE", "extraction_temperature")
+    
+    def _safe_float_env(self, env_var: str, attr_name: str):
+        """Converte variável de ambiente para float com tratamento de erro"""
+        value = os.getenv(env_var)
+        if value:
+            try:
+                setattr(self, attr_name, float(value))
+            except ValueError:
+                logger.warning(f"Valor inválido para {env_var}: '{value}'. Usando padrão {getattr(self, attr_name)}")
 
 
 @dataclass

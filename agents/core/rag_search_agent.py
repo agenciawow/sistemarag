@@ -8,6 +8,7 @@ import logging
 from typing import Dict, Any, List, Optional
 from datetime import datetime
 
+from openai import OpenAI
 from agents.tools.retrieval_tool import RetrievalTool
 from agents.core.zep_client import get_zep_client, is_zep_available, ZepMessage
 from system_rag.config.settings import settings
@@ -63,7 +64,8 @@ class RAGSearchAgent:
         )
         
         # Cliente OpenAI para geração de respostas
-        from openai import OpenAI
+        if not settings.api.openai_api_key:
+            raise ValueError("OpenAI API key não encontrada nas configurações")
         self.openai_client = OpenAI(api_key=settings.api.openai_api_key)
         
         logger.info(f"Agente {self.name} inicializado com sucesso")
@@ -269,14 +271,19 @@ class RAGSearchAgent:
                             })
             
             # Gerar resposta com OpenAI
-            response = self.openai_client.chat.completions.create(
-                model=settings.openai_models.answer_generation_model,
-                messages=[{"role": "user", "content": content}],
-                max_tokens=2048,
-                temperature=settings.openai_models.answer_generation_temperature
-            )
-            
-            answer = response.choices[0].message.content
+            try:
+                response = self.openai_client.chat.completions.create(
+                    model=settings.openai_models.answer_generation_model,
+                    messages=[{"role": "user", "content": content}],
+                    max_tokens=2048,
+                    temperature=settings.openai_models.answer_generation_temperature
+                )
+                
+                answer = response.choices[0].message.content
+                
+            except Exception as e:
+                logger.error(f"Erro ao gerar resposta com OpenAI: {e}")
+                answer = f"Desculpe, não consegui processar sua pergunta no momento. Com base na busca, encontrei informações sobre: {', '.join([doc.get('title', 'documento') for doc in documents[:3]])}. Tente reformular sua pergunta."
             
             # Adicionar informação sobre o processo de busca se relevante
             if query_info.get("reranking_enabled") and len(documents) > 1:
