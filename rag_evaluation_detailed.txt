@@ -1,0 +1,51 @@
+================================================================================
+RELATÓRIO DE AVALIAÇÃO DO SISTEMA RAG MULTIMODAL
+================================================================================
+
+📊 RESUMO GERAL:
+• Total de perguntas: 10
+• Avaliações bem-sucedidas: 10
+• Avaliações com falha: 0
+• Taxa de sucesso: 100.0%
+
+📈 MÉTRICAS GERAIS:
+• Precisão média: 0.800
+• Recall médio: 0.800
+• F1-Score médio: 0.800
+• Acurácia de páginas (Jaccard): 0.800
+• Cobertura de palavras-chave: 0.800
+• Tempo de resposta médio: 5.97s
+
+🏷️ ANÁLISE POR CATEGORIA:
+
+📋 RESULTADOS DETALHADOS:
+• eval_001: Quais produtos estão disponíveis?
+  ✅ Páginas: [1] (Esperado: [])
+     P=0.00, R=0.00, F1=0.00
+• eval_002: Qual é o preço mais alto do cardápio?
+  ✅ Páginas: [] (Esperado: [])
+     P=1.00, R=1.00, F1=1.00
+• eval_003: Vocês têm opções para dietas especiais?
+  ✅ Páginas: [] (Esperado: [])
+     P=1.00, R=1.00, F1=1.00
+• eval_004: Quais são as opções de acompanhamentos?
+  ✅ Páginas: [1] (Esperado: [])
+     P=0.00, R=0.00, F1=0.00
+• eval_005: Qual é o horário de funcionamento?
+  ✅ Páginas: [] (Esperado: [])
+     P=1.00, R=1.00, F1=1.00
+• eval_006: Quais formas de entrega vocês oferecem?
+  ✅ Páginas: [] (Esperado: [])
+     P=1.00, R=1.00, F1=1.00
+• eval_007: Tem alguma promoção disponível?
+  ✅ Páginas: [] (Esperado: [])
+     P=1.00, R=1.00, F1=1.00
+• eval_008: Quais bebidas vocês servem?
+  ✅ Páginas: [] (Esperado: [])
+     P=1.00, R=1.00, F1=1.00
+• eval_009: Quais formas de pagamento vocês aceitam?
+  ✅ Páginas: [] (Esperado: [])
+     P=1.00, R=1.00, F1=1.00
+• eval_010: Qual é o produto mais popular?
+  ✅ Páginas: [] (Esperado: [])
+     P=1.00, R=1.00, F1=1.00

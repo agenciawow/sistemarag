@@ -222,10 +222,10 @@ MENSAGEM: {message}
 RESPONDA APENAS COM A PERGUNTA TRANSFORMADA:"""
 
             response = self.openai_client.chat.completions.create(
-                model="gpt-4o-mini",
+                model=settings.openai_models.query_transform_model,
                 messages=[{"role": "user", "content": prompt}],
                 max_tokens=150,
-                temperature=0.0
+                temperature=settings.openai_models.query_transform_temperature
             )
             
             transformed = response.choices[0].message.content.strip()

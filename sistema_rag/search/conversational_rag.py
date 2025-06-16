@@ -17,7 +17,7 @@ from .retrieval import RAGPipeline
 from ..config.settings import settings
 
 # Configurações do sistema
-LLM_MODEL = "gpt-4o"
+# LLM_MODEL agora vem das configurações
 MAX_CANDIDATES = 5
 MAX_SELECTED = 2
 COLLECTION_NAME = "agenciawow"
@@ -254,10 +254,10 @@ DOCUMENTOS ANALISADOS:"""
                 })
             
             response = self.openai_client.chat.completions.create(
-                model=LLM_MODEL,
+                model=settings.openai_models.extraction_model,
                 messages=[{"role": "user", "content": content}],
                 response_format={"type": "json_object"},
-                temperature=0.1
+                temperature=settings.openai_models.extraction_temperature
             )
             
             extracted_data = json.loads(response.choices[0].message.content)

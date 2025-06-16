@@ -27,7 +27,7 @@ class SearchReranker:
     
     def __init__(self,
                  openai_client: OpenAI = None,
-                 model: str = "gpt-4o",
+                 model: str = None,
                  max_tokens: int = 512,
                  max_candidates: int = 10):
         """
@@ -35,12 +35,12 @@ class SearchReranker:
         
         Args:
             openai_client: Cliente OpenAI
-            model: Modelo para re-ranking
+            model: Modelo para re-ranking (usa configuração se None)
             max_tokens: Máximo de tokens na resposta
             max_candidates: Máximo de candidatos para avaliar
         """
         self.openai_client = openai_client or OpenAI(api_key=settings.api.openai_api_key)
-        self.model = model
+        self.model = model or settings.openai_models.rerank_model
         self.max_tokens = max_tokens
         self.max_candidates = max_candidates
     
@@ -81,7 +81,7 @@ class SearchReranker:
                 model=self.model,
                 messages=[{"role": "user", "content": content}],
                 max_tokens=self.max_tokens,
-                temperature=0.0
+                temperature=settings.openai_models.rerank_temperature
             )
             
             result_text = response.choices[0].message.content or ""

@@ -83,9 +83,9 @@ GOOGLE_API_KEY=your-google-api-key-here
 
 # Astra DB
 ASTRA_DB_APPLICATION_TOKEN=AstraCS:your-token-here
-ASTRA_DB_API_ENDPOINT=https://your-db.apps.astra.datastax.com
+ASTRA_DB_API_ENDPOINT=https://database-id-region.apps.astra.datastax.com
 ASTRA_DB_KEYSPACE=default_keyspace
-ASTRA_DB_COLLECTION=sistema_rag_docs
+ASTRA_DB_COLLECTION=agenciawow
 
 # Cloudflare R2
 R2_ENDPOINT=https://your-worker.workers.dev
@@ -93,6 +93,57 @@ R2_AUTH_TOKEN=your-r2-token-here
 
 # Google Drive Document
 GOOGLE_DRIVE_URL=https://drive.google.com/file/d/YOUR_FILE_ID/view
+
+# Configuração dos Modelos OpenAI (opcional - usa defaults se não definido)
+# Reranking de resultados
+OPENAI_RERANK_MODEL=gpt-4.1-mini
+OPENAI_RERANK_TEMPERATURE=0.1
+
+# Transformação de queries
+OPENAI_QUERY_TRANSFORM_MODEL=gpt-4.1-mini
+OPENAI_QUERY_TRANSFORM_TEMPERATURE=0.3
+
+# Geração de respostas finais
+OPENAI_ANSWER_GENERATION_MODEL=gpt-4.1
+OPENAI_ANSWER_GENERATION_TEMPERATURE=0.7
+
+# Extração de dados estruturados
+OPENAI_EXTRACTION_MODEL=gpt-4.1
+OPENAI_EXTRACTION_TEMPERATURE=0.1
+```
+
+### 1.1. Configuração dos Modelos OpenAI
+
+O sistema permite configurar diferentes modelos para cada função:
+
+- **OPENAI_RERANK_MODEL**: Modelo para reordenar resultados (padrão: `gpt-4o`)
+- **OPENAI_QUERY_TRANSFORM_MODEL**: Modelo para transformar perguntas (padrão: `gpt-4o-mini`) 
+- **OPENAI_ANSWER_GENERATION_MODEL**: Modelo para gerar respostas finais (padrão: `gpt-4o`)
+- **OPENAI_EXTRACTION_MODEL**: Modelo para extrair dados estruturados (padrão: `gpt-4o`)
+
+Cada modelo também permite configurar a temperatura:
+- **OPENAI_RERANK_TEMPERATURE**: Temperatura para reranking (padrão: 0.1)
+- **OPENAI_QUERY_TRANSFORM_TEMPERATURE**: Temperatura para transformação (padrão: 0.3)
+- **OPENAI_ANSWER_GENERATION_TEMPERATURE**: Temperatura para geração (padrão: 0.7)
+- **OPENAI_EXTRACTION_TEMPERATURE**: Temperatura para extração (padrão: 0.1)
+
+**Exemplos de configuração:**
+```bash
+# Usar GPT-4.1 para tudo (configuração atual)
+OPENAI_RERANK_MODEL=gpt-4.1-mini
+OPENAI_QUERY_TRANSFORM_MODEL=gpt-4.1-mini
+OPENAI_ANSWER_GENERATION_MODEL=gpt-4.1
+OPENAI_EXTRACTION_MODEL=gpt-4.1
+
+# Configuração econômica (GPT-4o-mini onde possível)
+OPENAI_RERANK_MODEL=gpt-4o-mini
+OPENAI_QUERY_TRANSFORM_MODEL=gpt-4o-mini
+OPENAI_ANSWER_GENERATION_MODEL=gpt-4o
+OPENAI_EXTRACTION_MODEL=gpt-4o-mini
+
+# Usar o mais recente GPT-4o
+OPENAI_ANSWER_GENERATION_MODEL=gpt-4o
+OPENAI_RERANK_MODEL=gpt-4o
 ```
 
 ### 2. Configuração do Astra DB
@@ -579,6 +630,85 @@ searcher = VectorSearcher()
 print(searcher.test_connection().message)
 "
 ```
+
+## 🧪 Sistema de Avaliação Automática
+
+O sistema inclui um avaliador automático (`rag_evaluator.py`) que testa a qualidade das respostas do RAG usando perguntas configuráveis via variáveis de ambiente.
+
+### Configuração das Perguntas de Avaliação
+
+As perguntas de teste são definidas no arquivo `.env` usando três variáveis principais:
+
+#### 1. EVAL_QUESTIONS - Lista de Perguntas
+Define as perguntas que serão testadas, separadas por `|`:
+
+```bash
+EVAL_QUESTIONS="Quais produtos estão disponíveis?|Qual é o preço mais alto do cardápio?|Vocês têm opções para dietas especiais?|Quais são as opções de acompanhamentos?|Qual é o horário de funcionamento?|Quais formas de entrega vocês oferecem?|Tem alguma promoção disponível?|Quais bebidas vocês servem?|Quais formas de pagamento vocês aceitam?|Qual é o produto mais popular?"
+```
+
+#### 2. EVAL_KEYWORDS - Palavras-chave Esperadas
+Define as palavras-chave que devem aparecer nas respostas, na mesma ordem das perguntas, separadas por `|` (pergunta) e `,` (palavras):
+
+```bash
+EVAL_KEYWORDS="produtos,cardápio,menu,disponível|preço,valor,caro,alto,maior|dieta,vegetariano,vegano,especial,restrito|acompanhamento,lado,adicional,extra|horário,funcionamento,aberto,fecha,atendimento|entrega,retirada,balcão,domicílio|promoção,desconto,oferta,combo,especial|bebida,refrigerante,suco,água,drinks|pagamento,cartão,dinheiro,pix,forma|popular,favorito,vendido,preferido"
+```
+
+#### 3. EVAL_CATEGORIES - Categorias das Perguntas
+Define a categoria de cada pergunta para análise estatística, na mesma ordem:
+
+```bash
+EVAL_CATEGORIES="catalog|pricing|dietary|sides|hours|delivery|promotions|drinks|payment|popular"
+```
+
+### Como Funciona o Sistema de Avaliação
+
+1. **Leitura das Variáveis**: O avaliador carrega as perguntas, palavras-chave e categorias do `.env`
+2. **Execução das Perguntas**: Cada pergunta é enviada para o sistema RAG
+3. **Análise das Respostas**: O sistema calcula métricas baseadas em:
+   - **Cobertura de palavras-chave**: Quantas palavras esperadas aparecem na resposta
+   - **Tempo de resposta**: Velocidade do sistema
+   - **Detecção de "não encontrado"**: Se o sistema identifica corretamente quando não há informação
+
+### Executando a Avaliação
+
+```bash
+# Executar avaliação completa
+python rag_evaluator.py
+```
+
+### Resultados Gerados
+
+A avaliação gera dois arquivos:
+
+- **`rag_evaluation_report.json`**: Relatório completo em JSON com métricas detalhadas
+- **`rag_evaluation_detailed.txt`**: Relatório em texto legível com resumo executivo
+
+### Personalizando para Seu Contexto
+
+Para adaptar o avaliador para diferentes tipos de documentos, ajuste as variáveis no `.env`:
+
+**Exemplo para um e-commerce:**
+```bash
+EVAL_QUESTIONS="Quais produtos você vende?|Qual o prazo de entrega?|Como faço uma devolução?"
+EVAL_KEYWORDS="produtos,vendas,catálogo|entrega,prazo,tempo|devolução,troca,garantia"
+EVAL_CATEGORIES="catalog|shipping|support"
+```
+
+**Exemplo para documentação técnica:**
+```bash
+EVAL_QUESTIONS="Como instalar o software?|Quais são os requisitos do sistema?|Como resolver erros comuns?"
+EVAL_KEYWORDS="instalação,setup,configuração|requisitos,sistema,mínimo|erro,problema,solução"
+EVAL_CATEGORIES="installation|requirements|troubleshooting"
+```
+
+### Métricas de Avaliação
+
+O sistema calcula automaticamente:
+
+- **Taxa de Sucesso**: Porcentagem de perguntas processadas sem erro
+- **Cobertura de Palavras-chave**: Média de palavras esperadas encontradas nas respostas
+- **Tempo de Resposta Médio**: Performance do sistema
+- **Análise por Categoria**: Métricas agrupadas por tipo de pergunta
 
 ## 📊 Estratégias de Chunking
 

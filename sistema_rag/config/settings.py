@@ -4,6 +4,10 @@ Configurações globais do Sistema RAG
 import os
 from typing import Optional
 from dataclasses import dataclass
+from dotenv import load_dotenv
+
+# Carrega variáveis de ambiente do arquivo .env
+load_dotenv()
 
 
 @dataclass
@@ -88,6 +92,45 @@ class CloudflareR2Settings:
 
 
 @dataclass
+class OpenAIModelSettings:
+    """Configurações dos modelos OpenAI"""
+    # Modelo para reranking
+    rerank_model: str = "gpt-4o"
+    
+    # Modelo para query transformation
+    query_transform_model: str = "gpt-4o-mini"
+    
+    # Modelo para geração de respostas finais
+    answer_generation_model: str = "gpt-4o"
+    
+    # Modelo para extração de dados estruturados
+    extraction_model: str = "gpt-4o"
+    
+    # Temperaturas para cada uso
+    rerank_temperature: float = 0.1
+    query_transform_temperature: float = 0.3
+    answer_generation_temperature: float = 0.7
+    extraction_temperature: float = 0.1
+    
+    def __post_init__(self):
+        """Carrega modelos das variáveis de ambiente se definidas"""
+        self.rerank_model = os.getenv("OPENAI_RERANK_MODEL", self.rerank_model)
+        self.query_transform_model = os.getenv("OPENAI_QUERY_TRANSFORM_MODEL", self.query_transform_model)
+        self.answer_generation_model = os.getenv("OPENAI_ANSWER_GENERATION_MODEL", self.answer_generation_model)
+        self.extraction_model = os.getenv("OPENAI_EXTRACTION_MODEL", self.extraction_model)
+        
+        # Temperaturas
+        if os.getenv("OPENAI_RERANK_TEMPERATURE"):
+            self.rerank_temperature = float(os.getenv("OPENAI_RERANK_TEMPERATURE"))
+        if os.getenv("OPENAI_QUERY_TRANSFORM_TEMPERATURE"):
+            self.query_transform_temperature = float(os.getenv("OPENAI_QUERY_TRANSFORM_TEMPERATURE"))
+        if os.getenv("OPENAI_ANSWER_GENERATION_TEMPERATURE"):
+            self.answer_generation_temperature = float(os.getenv("OPENAI_ANSWER_GENERATION_TEMPERATURE"))
+        if os.getenv("OPENAI_EXTRACTION_TEMPERATURE"):
+            self.extraction_temperature = float(os.getenv("OPENAI_EXTRACTION_TEMPERATURE"))
+
+
+@dataclass
 class GlobalSettings:
     """Configurações globais do sistema"""
     session_id: str = "123456"
@@ -101,6 +144,7 @@ class GlobalSettings:
     voyage: VoyageSettings = None
     astra_db: AstraDBSettings = None
     cloudflare_r2: CloudflareR2Settings = None
+    openai_models: OpenAIModelSettings = None
 
     def __post_init__(self):
         """Inicializa sub-configurações se não fornecidas"""
@@ -114,6 +158,8 @@ class GlobalSettings:
             self.astra_db = AstraDBSettings()
         if self.cloudflare_r2 is None:
             self.cloudflare_r2 = CloudflareR2Settings()
+        if self.openai_models is None:
+            self.openai_models = OpenAIModelSettings()
 
 
 # Instância global das configurações

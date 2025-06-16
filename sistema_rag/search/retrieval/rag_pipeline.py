@@ -206,7 +206,7 @@ class RAGPipeline:
             )
             
             response = self.openai_client.chat.completions.create(
-                model="gpt-4o-mini",
+                model=settings.openai_models.query_transform_model,
                 messages=[{"role": "user", "content": prompt}],
                 max_tokens=5,
                 temperature=0.0
@@ -277,10 +277,10 @@ class RAGPipeline:
                         })
             
             response = self.openai_client.chat.completions.create(
-                model="gpt-4o",
+                model=settings.openai_models.answer_generation_model,
                 messages=[{"role": "user", "content": content}],
                 max_tokens=2048,
-                temperature=0.2
+                temperature=settings.openai_models.answer_generation_temperature
             )
             
             return response.choices[0].message.content
