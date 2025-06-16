@@ -42,9 +42,23 @@ class LlamaParseSettings:
     parse_mode: str = "parse_page_with_agent"
     output_format: str = "markdown"
     take_screenshot: bool = True
-    vendor_multimodal_model: str = "openai-gpt4o"
+    # Configurações do modo multimodal (gera screenshots automaticamente)
+    use_vendor_multimodal_model: bool = True
+    vendor_multimodal_model_name: str = "anthropic-sonnet-3.5"
+    vendor_multimodal_api_key: Optional[str] = None
     max_wait_time: int = 300
     poll_interval: int = 5
+    
+    def __post_init__(self):
+        """Carrega chave do modelo multimodal se não fornecida"""
+        if not self.vendor_multimodal_api_key:
+            # Tentar diferentes variáveis de ambiente baseadas no modelo
+            if "anthropic" in self.vendor_multimodal_model_name.lower():
+                self.vendor_multimodal_api_key = os.getenv("ANTHROPIC_API_KEY")
+            elif "openai" in self.vendor_multimodal_model_name.lower():
+                self.vendor_multimodal_api_key = os.getenv("OPENAI_API_KEY")
+            elif "gemini" in self.vendor_multimodal_model_name.lower():
+                self.vendor_multimodal_api_key = os.getenv("GOOGLE_API_KEY")
 
 
 @dataclass

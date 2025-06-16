@@ -115,10 +115,23 @@ async def basic_rag_pipeline():
     
     print("\n🖼️ Processando com LlamaParse...")
     
+    # Exibir modo configurado
+    if settings.llama_parse.use_vendor_multimodal_model:
+        print(f"🤖 Modo Multimodal: {settings.llama_parse.vendor_multimodal_model_name}")
+        if settings.llama_parse.vendor_multimodal_api_key:
+            print("💰 Usando chave própria (1 crédito/página)")
+        else:
+            print("💳 Usando créditos LlamaParse (preço padrão)")
+    else:
+        print(f"⚙️  Modo Tradicional: {settings.llama_parse.parse_mode}")
+    
     processor = LlamaParseProcessor(
         api_key=os.getenv('LLAMA_CLOUD_API_KEY'),
-        take_screenshot=True,
-        parse_mode="parse_page_with_agent"  # Modo Premium que suporta screenshots
+        take_screenshot=settings.llama_parse.take_screenshot,
+        parse_mode=settings.llama_parse.parse_mode,
+        use_vendor_multimodal_model=settings.llama_parse.use_vendor_multimodal_model,
+        vendor_multimodal_model_name=settings.llama_parse.vendor_multimodal_model_name,
+        vendor_multimodal_api_key=settings.llama_parse.vendor_multimodal_api_key
     )
     
     try:
@@ -158,10 +171,13 @@ async def basic_rag_pipeline():
     )
     
     try:
+        # Extrair nome do documento (sem extensão) para usar como prefixo
+        doc_name = os.path.splitext(selected_file.filename)[0]
+        
         chunk_collection = merger.merge_content(
             parsed_doc, 
             screenshots, 
-            document_name="exemplo_documento"
+            document_name=doc_name
         )
         
         print(f"✅ Criados {chunk_collection.total_chunks} chunks")
@@ -250,6 +266,14 @@ async def basic_rag_pipeline():
         replace_existing=True,
         batch_size=20
     )
+    
+    # Limpar documentos antigos com nome "exemplo_documento" se existirem
+    try:
+        old_docs_deleted = astra_inserter._delete_by_source("exemplo_documento")
+        if old_docs_deleted > 0:
+            print(f"🧹 Removidos {old_docs_deleted} documentos antigos com nome 'exemplo_documento'")
+    except Exception as e:
+        print(f"⚠️  Não foi possível limpar documentos antigos: {e}")
     
     try:
         # Testar conexão primeiro
@@ -351,6 +375,73 @@ def quick_test():
     print("\n✅ Testes concluídos")
 
 
+def demo_multimodal_parsing():
+    """
+    Demonstração do modo multimodal do LlamaParse
+    """
+    print("🤖 Demo: Modo Multimodal LlamaParse")
+    print("=====================================")
+    
+    # Verificar se API key está configurada
+    if not os.getenv('LLAMA_CLOUD_API_KEY'):
+        print("❌ LLAMA_CLOUD_API_KEY não configurada")
+        return
+    
+    # Exemplo 1: Modo multimodal básico (mais caro, usa créditos LlamaParse)
+    print("\n📖 Exemplo 1: Modo Multimodal Básico")
+    processor_basic = LlamaParseProcessor.create_multimodal(
+        api_key=os.getenv('LLAMA_CLOUD_API_KEY'),
+        model_name="anthropic-sonnet-3.5"
+    )
+    print(f"   Modelo: {processor_basic.vendor_multimodal_model_name}")
+    print(f"   Chave própria: {'Sim' if processor_basic.vendor_multimodal_api_key else 'Não'}")
+    
+    # Exemplo 2: Modo multimodal com chave própria (mais barato)
+    print("\n💰 Exemplo 2: Modo Multimodal com Chave Própria")
+    anthropic_key = os.getenv('ANTHROPIC_API_KEY')
+    if anthropic_key:
+        processor_cheaper = LlamaParseProcessor.create_multimodal(
+            api_key=os.getenv('LLAMA_CLOUD_API_KEY'),
+            model_name="anthropic-sonnet-3.5",
+            model_api_key=anthropic_key
+        )
+        print(f"   Modelo: {processor_cheaper.vendor_multimodal_model_name}")
+        print(f"   Custo: 1 crédito por página (≈$0.003)")
+        print(f"   Chave Anthropic: {'✅ Configurada' if anthropic_key else '❌ Não encontrada'}")
+    else:
+        print("   ❌ ANTHROPIC_API_KEY não configurada")
+    
+    # Exemplo 3: Outros modelos disponíveis
+    print("\n🎯 Modelos Multimodais Disponíveis:")
+    models = {
+        "Anthropic": [
+            "anthropic-sonnet-3.5",
+            "anthropic-sonnet-3.7", 
+            "anthropic-sonnet-4.0"
+        ],
+        "OpenAI": [
+            "openai-gpt4o",
+            "openai-gpt-4o-mini",
+            "openai-gpt-4-1"
+        ],
+        "Google": [
+            "gemini-2.0-flash-001",
+            "gemini-2.5-pro",
+            "gemini-1.5-pro"
+        ]
+    }
+    
+    for provider, model_list in models.items():
+        print(f"   {provider}:")
+        for model in model_list:
+            print(f"     - {model}")
+    
+    print("\n💡 Para usar modo multimodal:")
+    print("   1. Configure no .env: use_vendor_multimodal_model=true")
+    print("   2. Escolha modelo: vendor_multimodal_model_name=anthropic-sonnet-3.5")
+    print("   3. (Opcional) Configure chave própria para economizar")
+
+
 if __name__ == "__main__":
     # Carregar variáveis de ambiente
     try:
@@ -359,15 +450,22 @@ if __name__ == "__main__":
     except ImportError:
         print("python-dotenv não instalado. Configure as variáveis manualmente.")
     
-    # Executar teste rápido ou pipeline completo
+    # Executar teste rápido, demo multimodal ou pipeline completo
     import sys
     
-    if len(sys.argv) > 1 and sys.argv[1] == "test":
-        quick_test()
+    if len(sys.argv) > 1:
+        if sys.argv[1] == "test":
+            quick_test()
+        elif sys.argv[1] == "demo":
+            demo_multimodal_parsing()
+        else:
+            print(f"❌ Comando '{sys.argv[1]}' não reconhecido")
     else:
         print("Para executar o pipeline completo:")
         print("  python -m sistema_rag.examples.basic_usage")
         print("\nPara teste rápido:")
         print("  python -m sistema_rag.examples.basic_usage test")
+        print("\nPara demo do modo multimodal:")
+        print("  python -m sistema_rag.examples.basic_usage demo")
         
         # asyncio.run(basic_rag_pipeline())

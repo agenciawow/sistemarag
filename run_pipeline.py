@@ -49,10 +49,14 @@ def main():
     print("   - Cloudflare R2: storage mínimo")
     print("   - Astra DB: gratuito até 25GB")
     
-    response = input("\n🤔 Continuar? (s/N): ").lower().strip()
-    if response not in ['s', 'sim', 'y', 'yes']:
-        print("❌ Pipeline cancelado pelo usuário")
-        return
+    # Auto-confirmar se executado com argumento --auto ou -y
+    if "--auto" in sys.argv or "-y" in sys.argv:
+        print("\n🤔 Continuar? (s/N): s [auto-confirmado]")
+    else:
+        response = input("\n🤔 Continuar? (s/N): ").lower().strip()
+        if response not in ['s', 'sim', 'y', 'yes']:
+            print("❌ Pipeline cancelado pelo usuário")
+            return
     
     print("\n🚀 Iniciando pipeline completo...")
     try:

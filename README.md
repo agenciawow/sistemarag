@@ -71,9 +71,15 @@ OPENAI_API_KEY=sk-your-openai-key-here
 VOYAGE_API_KEY=pa-your-voyage-key-here
 LLAMA_CLOUD_API_KEY=llx-your-llama-key-here
 
+# APIs para Modo Multimodal LlamaParse (opcional, reduz custo)
+ANTHROPIC_API_KEY=sk-ant-your-anthropic-key-here
+GOOGLE_API_KEY=your-google-api-key-here
+
 # Astra DB
 ASTRA_DB_APPLICATION_TOKEN=AstraCS:your-token-here
 ASTRA_DB_API_ENDPOINT=https://your-db.apps.astra.datastax.com
+ASTRA_DB_KEYSPACE=default_keyspace
+ASTRA_DB_COLLECTION=sistema_rag_docs
 
 # Cloudflare R2
 R2_ENDPOINT=https://your-worker.workers.dev
@@ -91,9 +97,175 @@ GOOGLE_DRIVE_URL=https://drive.google.com/file/d/YOUR_FILE_ID/view
 
 ### 3. Configuração do Cloudflare R2
 
-1. Configure um Worker para R2
-2. Implemente endpoints para upload/download/delete
-3. Configure autenticação Bearer
+#### 3.1. Criar o Worker
+
+1. Acesse o [Cloudflare Dashboard](https://dash.cloudflare.com)
+2. Vá para **Workers & Pages** → **Create Application** → **Create Worker**
+3. Substitua o código padrão pelo código abaixo:
+
+```javascript
+function isAuthorized(request, env) {
+  const authHeader = request.headers.get("Authorization");
+  return authHeader === `Bearer ${env.AUTH_TOKEN}`;
+}
+
+export default {
+  async fetch(request, env) {
+    const url = new URL(request.url);
+    const pathname = url.pathname;
+
+    // Verificação de autenticação
+    if (!isAuthorized(request, env)) {
+      return new Response("Não autorizado", { status: 401 });
+    }
+
+    // Upload de imagem: /upload/<key>
+    if (request.method === "PUT" && pathname.startsWith("/upload/")) {
+      const key = decodeURIComponent(pathname.replace("/upload/", ""));
+      const body = await request.arrayBuffer();
+      await env.BUCKET.put(key, body);
+      return new Response(`Upload feito: ${key}`, { status: 200 });
+    }
+
+    // Download de arquivo: /file/<key>
+    if (request.method === "GET" && pathname.startsWith("/file/")) {
+      const key = decodeURIComponent(pathname.replace("/file/", ""));
+      try {
+        const object = await env.BUCKET.get(key);
+        if (!object) {
+          return new Response("Arquivo não encontrado", { status: 404 });
+        }
+        // Detecta o content-type se possível
+        const contentType = object.httpMetadata?.contentType || "image/jpeg";
+        return new Response(object.body, {
+          status: 200,
+          headers: {
+            "Content-Type": contentType,
+            "Cache-Control": "public, max-age=31536000",
+          }
+        });
+      } catch (e) {
+        return new Response("Erro ao buscar arquivo", { status: 500 });
+      }
+    }
+
+    // Delete por documento: /delete-doc/<docId>
+    if (request.method === "DELETE" && pathname.startsWith("/delete-doc/")) {
+      const docId = decodeURIComponent(pathname.replace("/delete-doc/", ""));
+      const prefix = `${docId}_`;
+      const list = await env.BUCKET.list({ prefix });
+
+      const deletions = list.objects.map(obj => env.BUCKET.delete(obj.key));
+      await Promise.all(deletions);
+
+      return new Response(`Deletados ${list.objects.length} arquivos com prefixo: ${prefix}`, {
+        status: 200,
+      });
+    }
+
+    // Delete TODOS os arquivos: /delete-all
+    if (request.method === "DELETE" && pathname === "/delete-all") {
+      let totalDeleted = 0;
+      let cursor = undefined;
+
+      // Lista e deleta em batches (R2 retorna max 1000 por vez)
+      do {
+        const listResponse = await env.BUCKET.list({ cursor });
+
+        if (listResponse.objects.length > 0) {
+          const deletions = listResponse.objects.map(obj => env.BUCKET.delete(obj.key));
+          await Promise.all(deletions);
+          totalDeleted += listResponse.objects.length;
+        }
+
+        cursor = listResponse.truncated ? listResponse.cursor : undefined;
+      } while (cursor);
+
+      return new Response(`Deletados ${totalDeleted} arquivos do bucket`, {
+        status: 200,
+      });
+    }
+
+    // Listar arquivos por prefixo: /list/<prefix> (para dry run)
+    if (request.method === "GET" && pathname.startsWith("/list/")) {
+      const prefix = decodeURIComponent(pathname.replace("/list/", ""));
+      const list = await env.BUCKET.list({ prefix: `${prefix}_` });
+
+      const files = list.objects.map(obj => ({
+        name: obj.key,
+        size: obj.size,
+        modified: obj.uploaded
+      }));
+
+      return new Response(JSON.stringify({
+        files: files,
+        count: files.length,
+        total_size: files.reduce((sum, file) => sum + file.size, 0)
+      }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" }
+      });
+    }
+
+    // Stats do bucket: /stats (para dry run delete-all)
+    if (request.method === "GET" && pathname === "/stats") {
+      let totalFiles = 0;
+      let totalSize = 0;
+      let cursor = undefined;
+
+      // Lista todos os arquivos para contar
+      do {
+        const listResponse = await env.BUCKET.list({ cursor });
+        totalFiles += listResponse.objects.length;
+        totalSize += listResponse.objects.reduce((sum, obj) => sum + obj.size, 0);
+        cursor = listResponse.truncated ? listResponse.cursor : undefined;
+      } while (cursor);
+
+      return new Response(JSON.stringify({
+        total_files: totalFiles,
+        total_size: totalSize
+      }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" }
+      });
+    }
+
+    return new Response(
+      "Use PUT /upload/<nome>, DELETE /delete-doc/<docId>, DELETE /delete-all, GET /list/<prefix>, GET /stats, ou GET /file/<key>",
+      { status: 400 }
+    );
+  }
+}
+```
+
+#### 3.2. Configurar Variáveis de Ambiente
+
+1. No painel do Worker, vá para **Settings** → **Variables**
+2. Adicione a variável:
+   - **Nome**: `AUTH_TOKEN`
+   - **Valor**: Um token seguro (ex: `your-secret-token-123`)
+
+#### 3.3. Criar Bucket R2
+
+1. No Cloudflare Dashboard, vá para **R2 Object Storage**
+2. Clique em **Create bucket**
+3. Nomeie seu bucket (ex: `sistema-rag-images`)
+
+#### 3.4. Associar Worker ao Bucket
+
+1. No painel do Worker, vá para **Settings** → **Variables**
+2. Na seção **R2 Bucket Bindings**, clique em **Add binding**
+3. Configure:
+   - **Variable name**: `BUCKET`
+   - **R2 bucket**: Selecione o bucket criado
+
+#### 3.5. Atualizar .env
+
+No seu arquivo `.env`, configure:
+```bash
+R2_ENDPOINT=https://seu-worker.seu-subdominio.workers.dev
+R2_AUTH_TOKEN=your-secret-token-123
+```
 
 ### 4. Configuração do Google Drive
 
@@ -123,7 +295,38 @@ python run_pipeline.py
 
 # Teste rápido das APIs
 python run_pipeline.py test
+
+# Demo do modo multimodal
+python -m sistema_rag.examples.basic_usage demo
 ```
+
+### Modo Multimodal LlamaParse
+
+O sistema suporta o novo modo multimodal do LlamaParse que gera screenshots automaticamente:
+
+#### Configuração Básica (usando créditos LlamaParse)
+```python
+from sistema_rag.components.processing import LlamaParseProcessor
+
+processor = LlamaParseProcessor.create_multimodal(
+    api_key="llx-...",
+    model_name="anthropic-sonnet-3.5"
+)
+```
+
+#### Configuração Econômica (usando sua própria chave)
+```python
+processor = LlamaParseProcessor.create_multimodal(
+    api_key="llx-...",
+    model_name="anthropic-sonnet-3.5", 
+    model_api_key="sk-ant-..."  # Reduz custo para ~$0.003/página
+)
+```
+
+#### Modelos Disponíveis
+- **Anthropic**: `anthropic-sonnet-3.5`, `anthropic-sonnet-3.7`, `anthropic-sonnet-4.0`
+- **OpenAI**: `openai-gpt4o`, `openai-gpt-4o-mini`, `openai-gpt-4-1`
+- **Google**: `gemini-2.0-flash-001`, `gemini-2.5-pro`, `gemini-1.5-pro`
 
 Ou usando o módulo diretamente:
 

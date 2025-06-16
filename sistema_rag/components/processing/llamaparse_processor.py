@@ -34,7 +34,9 @@ class LlamaParseProcessor:
                  parse_mode: str = "parse_page_with_agent",
                  output_format: str = "markdown",
                  take_screenshot: bool = True,
-                 vendor_multimodal_model: str = "openai-gpt4o",
+                 use_vendor_multimodal_model: bool = False,
+                 vendor_multimodal_model_name: str = "anthropic-sonnet-3.5",
+                 vendor_multimodal_api_key: Optional[str] = None,
                  max_wait_time: int = 300,
                  poll_interval: int = 5):
         """
@@ -43,10 +45,12 @@ class LlamaParseProcessor:
         Args:
             api_key: Chave da API LlamaCloud
             api_endpoint: Endpoint da API
-            parse_mode: Método de parsing
+            parse_mode: Método de parsing (ignorado se use_vendor_multimodal_model=True)
             output_format: Formato de saída (markdown, text, json)
             take_screenshot: Capturar screenshots
-            vendor_multimodal_model: Modelo para LVM
+            use_vendor_multimodal_model: Usar modo multimodal com LLM/LVM
+            vendor_multimodal_model_name: Nome do modelo multimodal
+            vendor_multimodal_api_key: Chave própria do modelo (opcional, reduz custo)
             max_wait_time: Tempo máximo de espera em segundos
             poll_interval: Intervalo de polling em segundos
         """
@@ -55,7 +59,9 @@ class LlamaParseProcessor:
         self.parse_mode = parse_mode
         self.output_format = output_format
         self.take_screenshot = take_screenshot
-        self.vendor_multimodal_model = vendor_multimodal_model
+        self.use_vendor_multimodal_model = use_vendor_multimodal_model
+        self.vendor_multimodal_model_name = vendor_multimodal_model_name
+        self.vendor_multimodal_api_key = vendor_multimodal_api_key
         self.max_wait_time = max_wait_time
         self.poll_interval = poll_interval
         
@@ -64,6 +70,35 @@ class LlamaParseProcessor:
             "Authorization": f"Bearer {self.api_key}",
             "Accept": "application/json"
         }
+    
+    @classmethod
+    def create_multimodal(cls, 
+                         api_key: str,
+                         model_name: str = "anthropic-sonnet-3.5",
+                         model_api_key: Optional[str] = None,
+                         **kwargs) -> 'LlamaParseProcessor':
+        """
+        Cria uma instância configurada para modo multimodal
+        
+        Args:
+            api_key: Chave da API LlamaCloud
+            model_name: Nome do modelo multimodal
+                      - anthropic-sonnet-3.5, anthropic-sonnet-3.7, anthropic-sonnet-4.0
+                      - openai-gpt4o, openai-gpt-4o-mini, openai-gpt-4-1
+                      - gemini-2.0-flash-001, gemini-2.5-pro, gemini-1.5-pro
+            model_api_key: Chave própria do modelo (opcional, reduz custo)
+            **kwargs: Outros parâmetros para __init__
+            
+        Returns:
+            LlamaParseProcessor configurado para multimodal
+        """
+        return cls(
+            api_key=api_key,
+            use_vendor_multimodal_model=True,
+            vendor_multimodal_model_name=model_name,
+            vendor_multimodal_api_key=model_api_key,
+            **kwargs
+        )
     
     def process_document(self, selected_file: SelectedFile) -> ParsedDocument:
         """
@@ -240,12 +275,20 @@ class LlamaParseProcessor:
         }
         
         data = {
-            'parse_mode': self.parse_mode,
             'output_format': self.output_format,
             'take_screenshot': str(self.take_screenshot).lower(),
-            # Não usar save_images - é para extrair imagens do documento, não screenshots
-            'vendor_multimodal_model': self.vendor_multimodal_model
         }
+        
+        # Configurar modo multimodal ou parse_mode tradicional
+        if self.use_vendor_multimodal_model:
+            data['use_vendor_multimodal_model'] = 'true'
+            data['vendor_multimodal_model_name'] = self.vendor_multimodal_model_name
+            
+            # Adicionar chave própria se fornecida (reduz custo para 1 crédito/página)
+            if self.vendor_multimodal_api_key:
+                data['vendor_multimodal_api_key'] = self.vendor_multimodal_api_key
+        else:
+            data['parse_mode'] = self.parse_mode
         
         # Headers específicos para upload
         upload_headers = {
@@ -333,9 +376,9 @@ class LlamaParseProcessor:
         Obtém detalhes completos do job incluindo imagens disponíveis
         """
         try:
-            # Usar endpoint de details conforme documentação
+            # Usar endpoint de details conforme documentação oficial - deve ser GET
             details_url = f"{self.api_endpoint}/api/v1/parsing/job/{job_id}/details"
-            response = requests.post(details_url, headers=self.headers)
+            response = requests.get(details_url, headers=self.headers)
             response.raise_for_status()
             return response.json()
         except Exception as e:

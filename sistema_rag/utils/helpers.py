@@ -173,6 +173,17 @@ def generate_unique_filename(document_name: str, page_num: int, original_filenam
     """
     clean_doc_name = clean_filename(document_name)
     clean_original = clean_filename(original_filename)
+    
+    # Se o original_filename já contém informação de página (ex: page_1.jpg),
+    # usar apenas o chunk_id com a extensão do arquivo
+    if "page_" in clean_original.lower():
+        # Extrair apenas a extensão do arquivo original
+        file_extension = ""
+        if "." in clean_original:
+            file_extension = "." + clean_original.split(".")[-1]
+        return f"{clean_doc_name}_page_{page_num}{file_extension}"
+    
+    # Caso contrário, usar o formato original
     return f"{clean_doc_name}_page_{page_num}_{clean_original}"
 
 
