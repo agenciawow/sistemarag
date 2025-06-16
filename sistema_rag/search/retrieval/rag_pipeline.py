@@ -54,7 +54,7 @@ class RAGPipeline:
         
         # Inicializar componentes
         self.query_transformer = QueryTransformer(self.openai_client)
-        self.embedder = VoyageEmbedder()
+        self.embedder = VoyageEmbedder(api_key=settings.api.voyage_api_key)
         self.vector_searcher = VectorSearcher(max_results=max_candidates)
         self.reranker = SearchReranker(self.openai_client, max_candidates=max_candidates)
         

@@ -299,7 +299,7 @@ R2_AUTH_TOKEN=your-secret-token-123
 # 🚀 Ingestão de documentos
 python ingestion.py
 
-# 🔍 Busca/consulta
+# 🔍 Busca/consulta (RAG completo)
 python search.py
 ```
 
@@ -316,8 +316,37 @@ python -m sistema_rag.run_pipeline
 python -m sistema_rag.search.conversational_rag
 ```
 
-### 🔍 Sistema de Busca - Interface Simples
+### 🔍 Sistema de Busca - Interface Completa
 
+**Comando Principal (Recomendado):**
+```bash
+python search.py
+```
+
+**Funcionalidades:**
+- 🤖 **Pipeline RAG Completo**: Busca + Rerank + IA + Imagens
+- 💬 **Interface Interativa**: Digite perguntas em linguagem natural
+- 📚 **Fontes Citadas**: Mostra documentos utilizados
+- 🖼️ **Imagens Integradas**: Acesso direto às imagens do R2
+- 🧠 **Contexto Conversacional**: Mantém histórico da conversa
+
+**Exemplo de Uso:**
+```
+🔍 Sua pergunta: Qual o preço do hambúrguer de frango?
+🔎 Processando: 'Qual o preço do hambúrguer de frango?'
+⏳ Buscando → Reranking → Respondendo...
+
+🤖 Resposta:
+O hambúrguer de frango custa R$ 18,90 segundo o cardápio...
+
+📚 Fontes utilizadas:
+   1. cardapio_american - página 1
+      🖼️ https://agenciawow.ilceccato88.workers.dev/file/cardapio_american_page_1.jpg
+
+💭 Justificativa: Selecionei esta página porque contém...
+```
+
+**Interface Programática (Alternativa):**
 ```python
 from sistema_rag import SimpleRAG
 
@@ -325,15 +354,15 @@ from sistema_rag import SimpleRAG
 rag = SimpleRAG()
 
 # Fazer perguntas
-resposta = rag.search("Como funciona o Zep?")
+resposta = rag.search("Qual o preço do hambúrguer?")
 print(resposta)
 
 # Conversa com contexto
-resposta = rag.search("E sobre sua performance?")
+resposta = rag.search("E sobre as sobremesas?")
 print(resposta)
 
 # Extração de dados estruturados
-template = {"title": "", "authors": [], "concepts": []}
+template = {"pratos": [], "precos": [], "ingredientes": []}
 dados = rag.extract(template)
 print(dados)
 ```
@@ -396,15 +425,22 @@ python ingestion.py
 ### Busca no Cardápio
 
 ```bash
-# Busca itens do menu
+# Sistema de busca completo com IA
 python search.py
 ```
 
-**Exemplos de perguntas testadas:**
-- 🍔 "hambúrguer de frango" → Score: 0.724
-- 🍰 "sobremesas" → Score: 0.686
-- 💰 "preços" → Score: 0.609
-- 🥤 "bebidas" → Score: 0.628
+**O que o sistema faz:**
+- 🔍 Busca vetorial nos documentos
+- 🎯 Rerank inteligente com IA  
+- 🤖 Resposta contextualizada da OpenAI
+- 🖼️ Acesso às imagens do Cloudflare R2
+- 💬 Histórico conversacional
+
+**Exemplos de perguntas:**
+- 🍔 "Qual o preço do hambúrguer de frango?"
+- 🍰 "Que sobremesas vocês têm disponíveis?"
+- 💰 "Mostre-me os preços do cardápio"
+- 🥤 "Quais bebidas estão no menu?"
 
 ### Modo Multimodal LlamaParse
 
@@ -670,7 +706,7 @@ python -m sistema_rag.run_pipeline test
 # Verificar variáveis de ambiente
 cat .env | grep -E "(VOYAGE|ASTRA|R2)"
 
-# Testar busca específica
+# Testar busca completa com IA
 python search.py
 ```
 
