@@ -13,7 +13,7 @@ from dotenv import load_dotenv
 
 from openai import OpenAI
 
-from ..components.retrieval import RAGPipeline
+from .retrieval import RAGPipeline
 from ..config.settings import settings
 
 # Configurações do sistema

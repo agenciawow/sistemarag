@@ -13,13 +13,13 @@ import asyncio
 from typing import List
 
 # Importar componentes do sistema
-from ..components.ingestion.google_drive_downloader import GoogleDriveDownloader
-from ..components.ingestion.file_selector import FileSelector
-from ..components.processing.llamaparse_processor import LlamaParseProcessor
-from ..components.processing.multimodal_merger import MultimodalMerger
-from ..components.embeddings.voyage_embedder import VoyageEmbedder
-from ..components.storage.cloudflare_r2 import CloudflareR2Uploader
-from ..components.storage.astra_db import AstraDBInserter
+from .ingestion.google_drive_downloader import GoogleDriveDownloader
+from .ingestion.file_selector import FileSelector
+from .processing.llamaparse_processor import LlamaParseProcessor
+from .processing.multimodal_merger import MultimodalMerger
+from ..search.embeddings.voyage_embedder import VoyageEmbedder
+from .storage.cloudflare_r2 import CloudflareR2Uploader
+from .storage.astra_db import AstraDBInserter
 from ..config.settings import settings
 
 

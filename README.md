@@ -10,21 +10,21 @@ Este sistema implementa um pipeline completo para processamento de documentos mu
 
 ```
 📁 sistemarag/
-├── 📄 ingestao.py       # 🚀 Comando de ingestão
-├── 📄 busca.py          # 🔍 Comando de busca
+├── 📄 ingestion.py      # 🚀 Comando de ingestão
+├── 📄 search.py         # 🔍 Comando de busca
 └── 📁 sistema_rag/      # 🏗️ Sistema centralizado
-    ├── 📄 run_pipeline.py    # Pipeline interno
     ├── 📁 config/            # Configurações globais
     ├── 📁 models/            # Modelos de dados
     ├── 📁 utils/             # Utilitários e helpers
-    ├── 📁 components/        # Componentes modulares
-    │   ├── 📁 ingestion/     # Ingestão de documentos
+    ├── 📁 ingestion/         # 🚀 Sistema de Ingestão
+    │   ├── 📁 ingestion/     # Download de documentos
     │   ├── 📁 processing/    # Processamento de documentos
-    │   ├── 📁 embeddings/    # Geração de embeddings
     │   ├── 📁 storage/       # Armazenamento (R2 + Astra DB)
-    │   ├── 📁 retrieval/     # Busca e recuperação
-    │   └── 📁 generation/    # Geração de respostas
-    └── 📁 examples/          # Exemplos de uso
+    │   └── 📄 run_pipeline.py    # Pipeline de ingestão
+    └── 📁 search/            # 🔍 Sistema de Busca
+        ├── 📁 embeddings/    # Geração de embeddings
+        ├── 📁 retrieval/     # Busca e recuperação
+        └── 📄 conversational_rag.py  # Interface conversacional
 ```
 
 ## 🔧 Componentes Implementados
@@ -297,10 +297,10 @@ R2_AUTH_TOKEN=your-secret-token-123
 
 ```bash
 # 🚀 Ingestão de documentos
-python ingestao.py
+python ingestion.py
 
 # 🔍 Busca/consulta
-python busca.py
+python search.py
 ```
 
 ### 🧪 Comandos de Teste
@@ -313,7 +313,7 @@ python -m sistema_rag.run_pipeline test
 python -m sistema_rag.run_pipeline
 
 # Sistema de busca conversacional (avançado)
-python -m sistema_rag.examples.conversational_rag
+python -m sistema_rag.search.conversational_rag
 ```
 
 ### 🔍 Sistema de Busca - Interface Simples
@@ -370,7 +370,7 @@ print(f"Justificativa: {result['justification']}")
 ### 📱 Interface CLI Conversacional
 
 ```bash
-python -m sistema_rag.examples.conversational_rag
+python -m sistema_rag.search.conversational_rag
 ```
 
 **Comandos disponíveis:**
@@ -385,7 +385,7 @@ python -m sistema_rag.examples.conversational_rag
 
 ```bash
 # Processa cardápio American Burger
-python ingestao.py
+python ingestion.py
 ```
 
 **Resultado:**
@@ -397,7 +397,7 @@ python ingestao.py
 
 ```bash
 # Busca itens do menu
-python busca.py
+python search.py
 ```
 
 **Exemplos de perguntas testadas:**
@@ -437,7 +437,7 @@ processor = LlamaParseProcessor.create_multimodal(
 Ou usando o módulo diretamente:
 
 ```python
-from sistema_rag.examples.basic_usage import basic_rag_pipeline
+from sistema_rag.ingestion.basic_usage import basic_rag_pipeline
 import asyncio
 
 # Executar pipeline completo
@@ -449,44 +449,44 @@ asyncio.run(basic_rag_pipeline())
 #### Pipeline de Ingestão
 ```python
 # 1. Download do Google Drive
-from sistema_rag.components.ingestion import GoogleDriveDownloader
+from sistema_rag.ingestion.ingestion import GoogleDriveDownloader
 
 downloader = GoogleDriveDownloader()
 files = downloader.download_files(["sua_url_aqui"])
 
 # 2. Seleção de arquivo
-from sistema_rag.components.ingestion import FileSelector
+from sistema_rag.ingestion.ingestion import FileSelector
 
 selector = FileSelector()
 selected = selector.select_file(files, file_index=0)
 
 # 3. Processamento com LlamaParse
-from sistema_rag.components.processing import LlamaParseProcessor
+from sistema_rag.ingestion.processing import LlamaParseProcessor
 
 processor = LlamaParseProcessor(api_key="sua_chave")
 parsed_doc = processor.process_document(selected)
 screenshots = processor.get_screenshots(parsed_doc.job_id)
 
 # 4. Merge multimodal
-from sistema_rag.components.processing import MultimodalMerger
+from sistema_rag.ingestion.processing import MultimodalMerger
 
 merger = MultimodalMerger(merge_strategy="page_based")
 chunks = merger.merge_content(parsed_doc, screenshots)
 
 # 5. Embeddings
-from sistema_rag.components.embeddings import VoyageEmbedder
+from sistema_rag.search.embeddings import VoyageEmbedder
 
 embedder = VoyageEmbedder(api_key="sua_chave")
 embedded_chunks = embedder.embed_chunks(chunks)
 
 # 6. Upload para R2
-from sistema_rag.components.storage import CloudflareR2Uploader
+from sistema_rag.ingestion.storage import CloudflareR2Uploader
 
 uploader = CloudflareR2Uploader(r2_endpoint="...", auth_token="...")
 upload_result = uploader.upload_chunk_images(embedded_chunks)
 
 # 7. Inserção no Astra DB
-from sistema_rag.components.storage import AstraDBInserter
+from sistema_rag.ingestion.storage import AstraDBInserter
 
 inserter = AstraDBInserter(api_endpoint="...", auth_token="...", collection_name="docs")
 final_result = inserter.insert_chunks(upload_result["documents"])
@@ -495,26 +495,26 @@ final_result = inserter.insert_chunks(upload_result["documents"])
 #### Componentes de Busca
 ```python
 # 1. Transformador de queries
-from sistema_rag.components.retrieval import QueryTransformer
+from sistema_rag.search.retrieval import QueryTransformer
 
 transformer = QueryTransformer()
 chat_history = [{"role": "user", "content": "O que é isso?"}]
 transformed = transformer.transform_query(chat_history)
 
 # 2. Busca vetorial
-from sistema_rag.components.retrieval import VectorSearcher
+from sistema_rag.search.retrieval import VectorSearcher
 
 searcher = VectorSearcher()
 search_results = searcher.search_by_text("query", embedding)
 
 # 3. Busca de imagens R2
-from sistema_rag.components.retrieval import ImageFetcher
+from sistema_rag.search.retrieval import ImageFetcher
 
 fetcher = ImageFetcher()
 enriched_results = fetcher.enrich_search_results(search_results)
 
 # 4. Re-ranking
-from sistema_rag.components.retrieval import SearchReranker
+from sistema_rag.search.retrieval import SearchReranker
 
 reranker = SearchReranker()
 reranked = reranker.rerank_results("query", search_results)
@@ -538,7 +538,7 @@ cat .env | grep -E "(VOYAGE|ASTRA|R2)"
 # Testar componentes individualmente
 python -c "
 from dotenv import load_dotenv; load_dotenv()
-from sistema_rag.components.retrieval import VectorSearcher
+from sistema_rag.search.retrieval import VectorSearcher
 searcher = VectorSearcher()
 print(searcher.test_connection().message)
 "
@@ -619,10 +619,10 @@ print(searcher.test_connection().message)
 **Sistema atual:**
 ```bash
 # Ingestão
-python ingestao.py
+python ingestion.py
 
 # Busca
-python busca.py
+python search.py
 ```
 
 ### 📈 Resultados de Performance
@@ -671,7 +671,7 @@ python -m sistema_rag.run_pipeline test
 cat .env | grep -E "(VOYAGE|ASTRA|R2)"
 
 # Testar busca específica
-python busca.py
+python search.py
 ```
 
 ### 📞 Para Dúvidas

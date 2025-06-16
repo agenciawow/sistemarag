@@ -16,7 +16,7 @@ except ImportError:
 
 # Importar e executar pipeline
 sys.path.append('..')
-from .examples.basic_usage import basic_rag_pipeline, quick_test
+from .basic_usage import basic_rag_pipeline, quick_test
 
 
 def main():

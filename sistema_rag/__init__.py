@@ -13,8 +13,8 @@ Componentes principais:
 - Generation: Resposta final com contexto multimodal
 """
 
-from .components.retrieval import RAGPipeline, create_rag_pipeline, search_and_answer
-from .examples.conversational_rag import ModularConversationalRAG, SimpleRAG
+from .search.retrieval import RAGPipeline, create_rag_pipeline, search_and_answer
+from .search.conversational_rag import ModularConversationalRAG, SimpleRAG
 
 # Interfaces principais para uso externo
 __all__ = [

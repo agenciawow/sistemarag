@@ -11,7 +11,7 @@ if __name__ == "__main__":
     try:
         # Usar echo para confirmar automaticamente
         result = subprocess.run([
-            'bash', '-c', 'echo "s" | python -m sistema_rag.run_pipeline'
+            'bash', '-c', 'echo "s" | python -m sistema_rag.ingestion.run_pipeline'
         ], capture_output=True, text=True, cwd='.')
         
         # Mostrar a saída
