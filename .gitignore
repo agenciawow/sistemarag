@@ -47,3 +47,17 @@ build/
 poetry.lock
 Pipfile
 Pipfile.lock
+
+# Claude Code
+.claude
+
+# Resultados de avaliação
+system_rag/evaluation_results/*.json
+system_rag/evaluation_results/*.txt
+agents/evaluation_results/*.json
+agents/evaluation_results/*.txt
+rag_evaluation_*.json
+rag_evaluation_*.txt
+agent_evaluation_*.json
+agent_evaluation_*.txt
+agent_comparison_*.txt
