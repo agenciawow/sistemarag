@@ -1,0 +1,1 @@
+"""Componentes de recuperação e busca"""

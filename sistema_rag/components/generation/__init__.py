@@ -1,0 +1,1 @@
+"""Componentes de geração de resposta"""
