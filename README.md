@@ -1,12 +1,13 @@
 # 🤖 Sistema RAG Inteligente
 
-> Sistema avançado de busca e análise de documentos com agents inteligentes
+> Sistema avançado de busca e análise de documentos com agents inteligentes e memória persistente
 
 ## 🎯 **O que é?**
 
 Sistema RAG (Retrieval-Augmented Generation) que combina:
 - **Busca vetorial inteligente** em documentos
 - **Agentes autônomos** para análise contextual  
+- **Memória persistente com Zep** para contexto conversacional
 - **APIs REST** para integração fácil
 - **Interface multimodal** (texto + imagens)
 
@@ -21,8 +22,10 @@ Sistema RAG (Retrieval-Augmented Generation) que combina:
 ### 🤖 **Sistema de Agents**  
 - Agents especializados em diferentes tarefas
 - Descoberta automática de novos agents
-- Conversação com histórico contextual
-- **Memória persistente com Zep** (gerenciamento de contexto avançado)
+- **Memória persistente com Zep** (gerenciamento inteligente de contexto)
+- Conversação com histórico contextual entre sessões
+- Extração automática de fatos e entidades
+- Grafos de conhecimento dinâmicos
 - API REST dedicada
 
 ### 🔌 **APIs Disponíveis**
@@ -97,15 +100,21 @@ sistema_rag/
 - **📊 Monitoramento**: Logs estruturados e métricas detalhadas
 - **🔧 Modularidade**: Componentes independentes e reutilizáveis
 - **🤖 Extensibilidade**: Sistema de agents com descoberta automática
-- **🧠 Memória Inteligente**: Integração com Zep para contexto persistente
+- **🧠 Memória Inteligente**: Zep como camada central de memória
+  - Persistência de conversas entre sessões
+  - Extração automática de insights
+  - Busca semântica no histórico
+  - Grafos de conhecimento personalizados
 
 ## 🎭 **Casos de Uso**
 
 - **Análise de documentos técnicos** e acadêmicos
-- **Assistente inteligente** para bases de conhecimento
+- **Assistente inteligente** com memória persistente
 - **Busca contextual** em grandes volumes de texto
 - **Extração automatizada** de informações estruturadas
 - **Sistema de perguntas e respostas** empresarial
+- **Consultoria personalizada** com histórico de interações
+- **Suporte ao cliente** com contexto de conversas anteriores
 
 ## 🤝 **Contribuição**
 

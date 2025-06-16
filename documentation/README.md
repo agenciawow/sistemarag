@@ -41,6 +41,11 @@ Documentação completa do Sistema RAG Inteligente com Agentes.
    - Resultados e métricas
    - **📈 Para análise de qualidade**
 
+8. [**07_ZEP_MEMORY.md**](./07_ZEP_MEMORY.md) 🧠
+   - Integração com Zep para memória persistente
+   - Configuração e uso avançado
+   - **💾 Para memória inteligente entre conversas**
+
 ## 🎯 **Começar Rapidamente**
 
 ### Para usar o Sistema RAG:

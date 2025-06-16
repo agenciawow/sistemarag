@@ -35,7 +35,10 @@ Este sistema implementa um pipeline completo para processamento de documentos mu
 │
 ├── 📁 agents/                   # 🤖 Sistema de Agents (Avançado)
 │   ├── 📁 api/                  # API REST Agents (porta 8001)
-│   ├── 📁 core/                 # Agents e operadores
+│   ├── 📁 core/                 # Agents, operadores e Zep client
+│   │   ├── 📄 zep_client.py     # 🧠 Cliente Zep para memória persistente
+│   │   ├── 📄 rag_search_agent.py # Agent principal com integração Zep
+│   │   └── 📄 operator.py       # Operador de descoberta automática
 │   ├── 📁 tools/                # Ferramentas para agents
 │   └── 📄 agent_evaluator.py    # Avaliação de agents
 │

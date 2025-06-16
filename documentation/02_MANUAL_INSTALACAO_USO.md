@@ -113,6 +113,18 @@ pip install -r requirements.txt
 
 ## 3. Configuração das APIs
 
+### 🧠 **Nova Funcionalidade: Memória Persistente com Zep**
+
+A partir desta versão, o sistema inclui **memória persistente** usando a plataforma Zep. Isso permite que os agents lembrem de conversas anteriores, extraiam insights automaticamente e mantenham contexto entre sessões.
+
+#### **Benefícios da Memória Zep:**
+- 🧠 **Conversas contínuas**: Agents lembram de interações anteriores
+- 📊 **Extração automática**: Fatos e entidades são identificados automaticamente  
+- 🔍 **Busca contextual**: Busca semântica no histórico de conversas
+- 👥 **Multi-usuário**: Cada usuário tem seu contexto isolado
+
+## 3. Configuração das APIs
+
 ### 3.1. OpenAI (Obrigatório)
 
 #### Criando Conta:
@@ -197,7 +209,31 @@ pip install -r requirements.txt
    - `AUTH_TOKEN`: Crie uma senha secreta (ex: `minha-senha-123`)
    - `BUCKET`: `sistemarag-images`
 
-### 3.5. Google Drive (Opcional)
+### 3.5. Zep Memory (Obrigatório para Agents)
+
+**🧠 O que é Zep?** Plataforma de memória que permite que os agents lembrem de conversas anteriores e mantenham contexto entre sessões.
+
+#### Criando Conta:
+1. Vá para https://cloud.getzep.com
+2. Clique em "Sign Up"
+3. Crie conta com email ou GitHub
+4. Confirme o email
+
+#### Obtendo a Chave:
+1. Faça login no dashboard
+2. Vá em "API Keys" ou "Settings"
+3. Clique "Create API Key"
+4. **⚠️ COPIE E GUARDE**: A chave do Zep
+
+#### Por que é Importante:
+- 🧠 **Agents lembram**: De conversas anteriores
+- 📊 **Extração automática**: De fatos e informações importantes
+- 👥 **Multi-usuário**: Cada pessoa tem seu contexto isolado
+- 🔍 **Busca inteligente**: No histórico de conversas
+
+**💡 Dica**: O Zep é usado apenas pelos Agents (porta 8001). O Sistema RAG tradicional (porta 8000) funciona sem ele.
+
+### 3.6. Google Drive (Opcional)
 
 Se você quiser indexar documentos do Google Drive:
 
@@ -222,6 +258,7 @@ Se você quiser indexar documentos do Google Drive:
 OPENAI_API_KEY=sk-sua-chave-openai-aqui
 VOYAGE_API_KEY=pa-sua-chave-voyage-aqui
 LLAMA_CLOUD_API_KEY=llx-sua-chave-llama-aqui
+ZEP_API_KEY=zep-sua-chave-zep-aqui
 
 # Astra DB
 ASTRA_DB_APPLICATION_TOKEN=AstraCS:seu-token-aqui
@@ -298,6 +335,8 @@ O sistema oferece **duas maneiras** de buscar informações. Como iniciante, é 
 - **Características**:
   - 🧠 Mais inteligente e conversacional
   - 🔄 Consegue manter contexto de conversa
+  - 💾 **Memória persistente com Zep** (lembra de conversas anteriores)
+  - 📊 Extrai fatos e insights automaticamente
   - 🎯 Melhor para assistentes virtuais
   - ⚡ Mais lento que o sistema tradicional
 

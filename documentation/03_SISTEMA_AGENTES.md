@@ -38,7 +38,8 @@ Sistema de agents inteligentes baseado no sistema RAG existente, mantendo total 
 │   │   └── 📁 routes/           # Rotas organizadas
 │   ├── 📁 core/                 # Core dos agents
 │   │   ├── 📄 operator.py       # Descoberta automática de agents
-│   │   └── 📄 rag_search_agent.py  # Agent principal de busca
+│   │   ├── 📄 rag_search_agent.py  # Agent principal de busca
+│   │   └── 📄 zep_client.py     # 🧠 Cliente Zep para memória persistente
 │   └── 📁 tools/                # Ferramentas para agents
 │       └── 📄 retrieval_tool.py # Tool de busca integrada
 │
@@ -132,10 +133,16 @@ Content-Type: application/json
 
 {
   "message": "Sua pergunta aqui",
-  "session_id": "opcional",
+  "user_id": "user123",           # 🧠 OBRIGATÓRIO para memória Zep
+  "session_id": "session123",     # 🧠 OBRIGATÓRIO para memória Zep 
   "clear_history": false
 }
 ```
+
+**🧠 Novos Parâmetros Obrigatórios (Zep Memory):**
+- `user_id`: Identificador único do usuário (ex: "carlos", "user123")
+- `session_id`: Identificador da sessão de conversa (ex: "trabalho", "session123")
+- **Por que são obrigatórios?** Permitem que os agents lembrem de conversas anteriores e mantenham contexto entre sessões
 
 ### Histórico
 ```http
@@ -245,6 +252,27 @@ headers = {
     "Authorization": "Bearer sistemarag-api-key-2024",
     "Content-Type": "application/json"
 }
+
+# Exemplo completo com memória Zep
+url = "http://localhost:8001/v1/agents/rag-search/ask"
+data = {
+    "message": "Olá! Meu nome é João e sou desenvolvedor",
+    "user_id": "joao123",
+    "session_id": "conversa_trabalho"
+}
+
+response = requests.post(url, headers=headers, json=data)
+print(response.json())
+
+# Segunda pergunta - agent lembra do contexto
+data2 = {
+    "message": "Você se lembra do meu nome e profissão?",
+    "user_id": "joao123",
+    "session_id": "conversa_trabalho"
+}
+
+response2 = requests.post(url, headers=headers, json=data2)
+# Resposta: "Sim, você é o João e trabalha como desenvolvedor!"
 
 # 1. Listar agentes
 response = requests.get("http://localhost:8001/v1/agents", headers=headers)
