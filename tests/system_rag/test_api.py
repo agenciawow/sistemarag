@@ -249,6 +249,12 @@ class TestIngestionEndpoint:
         """Testa ingestão básica com URL de teste"""
         # URL de teste - PDF público pequeno
         test_url = "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
+
+        # Se não for possível acessar a URL de teste, pular o teste
+        try:
+            requests.head(test_url, timeout=5)
+        except Exception:
+            pytest.skip("Sem acesso à internet para baixar documento de teste")
         
         start_time = time.time()
         
