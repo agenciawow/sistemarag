@@ -101,12 +101,11 @@ response = agent.ask("Qual é o objetivo do projeto?")
 A API de agents usa o **mesmo sistema de autenticação** da API atual:
 
 ```http
-Authorization: Bearer sistemarag-api-key-2024
+Authorization: Bearer <API_KEY>
 ```
 
-**Configuração:**
+- **Configuração:**
 - Variável de ambiente: `API_KEY`
-- Valor padrão: `sistemarag-api-key-2024`
 - Endpoint público: `GET /auth-info` (sem autenticação)
 
 ## 📡 Endpoints da API de Agentes
@@ -116,19 +115,19 @@ Authorization: Bearer sistemarag-api-key-2024
 ### Listar Agentes
 ```http
 GET /v1/agents
-Authorization: Bearer sistemarag-api-key-2024
+Authorization: Bearer <API_KEY>
 ```
 
 ### Informações do Agente
 ```http
 GET /v1/agents/{agent_id}
-Authorization: Bearer sistemarag-api-key-2024
+Authorization: Bearer <API_KEY>
 ```
 
 ### Fazer Pergunta
 ```http
 POST /v1/agents/{agent_id}/ask
-Authorization: Bearer sistemarag-api-key-2024
+Authorization: Bearer <API_KEY>
 Content-Type: application/json
 
 {
@@ -147,16 +146,16 @@ Content-Type: application/json
 ### Histórico
 ```http
 GET /v1/agents/{agent_id}/history
-Authorization: Bearer sistemarag-api-key-2024
+Authorization: Bearer <API_KEY>
 
 POST /v1/agents/{agent_id}/clear
-Authorization: Bearer sistemarag-api-key-2024
+Authorization: Bearer <API_KEY>
 ```
 
 ### Teste
 ```http
 GET /v1/agents/{agent_id}/test
-Authorization: Bearer sistemarag-api-key-2024
+Authorization: Bearer <API_KEY>
 ```
 
 ## 🔧 Criando Novos Agentes
@@ -249,7 +248,7 @@ import requests
 
 # Headers de autenticação
 headers = {
-    "Authorization": "Bearer sistemarag-api-key-2024",
+    "Authorization": "Bearer <API_KEY>",
     "Content-Type": "application/json"
 }
 
