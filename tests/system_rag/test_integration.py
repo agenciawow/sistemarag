@@ -82,14 +82,14 @@ def check_prerequisites(integration_config):
     
     # Verificar se API está rodando
     if not integration_config.has_api_running:
-        pytest.fail(f"API não está rodando em {integration_config.API_BASE_URL}. Inicie com: python run_system_api.py")
+        pytest.skip(f"API não está rodando em {integration_config.API_BASE_URL}")
     
     # Verificar variáveis críticas
     required_vars = ['OPENAI_API_KEY', 'VOYAGE_API_KEY', 'ASTRA_DB_APPLICATION_TOKEN']
     missing_vars = [var for var in required_vars if not os.getenv(var)]
     
     if missing_vars:
-        pytest.fail(f"Variáveis de ambiente ausentes: {', '.join(missing_vars)}")
+        pytest.skip(f"Variáveis de ambiente ausentes: {', '.join(missing_vars)}")
 
 class TestEndToEndPipeline:
     """Testes end-to-end do pipeline completo"""

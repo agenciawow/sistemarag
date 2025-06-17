@@ -20,6 +20,12 @@ API_KEY = os.getenv("API_KEY")
 if not API_KEY:
     pytest.skip("API_KEY n\u00e3o configurada", allow_module_level=True)
 
+# Verificar se API de agentes está acessível
+try:
+    requests.get(f"{BASE_URL}/auth-info", timeout=5)
+except Exception:
+    pytest.skip("API de agentes não acessível", allow_module_level=True)
+
 def test_public_endpoint():
     """Testa endpoint público (sem autenticação)"""
     print("=== TESTE ENDPOINT PÚBLICO ===")

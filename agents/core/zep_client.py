@@ -396,4 +396,18 @@ def is_zep_available() -> bool:
     Returns:
         True se Zep estiver disponível
     """
-    return get_zep_client() is not None
+    api_key = os.getenv("ZEP_API_KEY")
+    if not api_key or api_key.startswith("your-"):
+        return False
+
+    try:
+        # Teste rápido de conectividade
+        test_client = Zep(api_key=api_key)
+        try:
+            test_client.user.list(limit=1)
+        except Exception:
+            return False
+
+        return True
+    except Exception:
+        return False
