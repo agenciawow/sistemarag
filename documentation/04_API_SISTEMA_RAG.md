@@ -32,7 +32,7 @@ API_KEY=sua-chave-api-segura-aqui
 ### 3. Iniciar Servidor
 ```bash
 # Desenvolvimento
-python api.py
+python run_system_api.py
 
 # Produção
 uvicorn api:app --host 0.0.0.0 --port 8000 --workers 4

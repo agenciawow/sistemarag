@@ -11,7 +11,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 
 from agents.core.operator import agent_operator
 from agents.core.rag_search_agent import RAGSearchAgent
-from agents.tools.retrieval_tool import test_retrieval_tool
+from agents.tools.retrieval_tool import test_retrieval_tool as retrieval_tool_test
 
 
 def test_agent_discovery():
@@ -29,11 +29,11 @@ def test_agent_discovery():
             print(f"    Módulo: {agent['module']}")
             print()
         
-        return len(agents) > 0
+        assert len(agents) > 0, "Nenhum agente foi descoberto"
         
     except Exception as e:
         print(f"❌ Erro na descoberta: {e}")
-        return False
+        assert False, f"Erro na descoberta: {e}"
 
 
 def test_retrieval_tool_directly():
@@ -42,19 +42,16 @@ def test_retrieval_tool_directly():
     
     try:
         # Testar conexão
-        test_result = test_retrieval_tool()
+        test_result = retrieval_tool_test()
         print(f"Teste de conexão: {test_result}")
         
-        if not test_result.get("success", False):
-            print("❌ Tool de retrieval não está funcionando")
-            return False
+        assert test_result.get("success", False), "Tool de retrieval não está funcionando"
         
         print("✅ Tool de retrieval funcionando")
-        return True
         
     except Exception as e:
         print(f"❌ Erro ao testar tool: {e}")
-        return False
+        assert False, f"Erro ao testar tool: {e}"
 
 
 def test_agent_instantiation():
@@ -63,9 +60,7 @@ def test_agent_instantiation():
     
     try:
         # Testar se agente RAG existe
-        if not agent_operator.agent_exists("rag-search"):
-            print("❌ Agente rag-search não foi descoberto")
-            return False
+        assert agent_operator.agent_exists("rag-search"), "Agente rag-search não foi descoberto"
         
         # Obter instância do agente
         agent = agent_operator.get_agent("rag-search")
@@ -79,11 +74,9 @@ def test_agent_instantiation():
             else:
                 print(f"  ❌ Método {method} ausente")
         
-        return True
-        
     except Exception as e:
         print(f"❌ Erro na instanciação: {e}")
-        return False
+        assert False, f"Erro na instanciação: {e}"
 
 
 def test_agent_functionality():
@@ -109,11 +102,15 @@ def test_agent_functionality():
         print(f"Após limpeza: {len(history_after)} mensagens")
         
         print("✅ Funcionalidade básica ok")
-        return True
+        
+        # Verificações
+        assert isinstance(response, str), "Resposta deve ser string"
+        assert len(response) > 0, "Resposta não pode estar vazia"
+        assert len(history_after) == 0, "Histórico não foi limpo corretamente"
         
     except Exception as e:
         print(f"❌ Erro na funcionalidade: {e}")
-        return False
+        assert False, f"Erro na funcionalidade: {e}"
 
 
 def run_all_tests():

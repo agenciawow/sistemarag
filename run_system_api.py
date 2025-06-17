@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python3
 """
 Script de conveniência para executar a API do Sistema RAG
@@ -18,9 +19,10 @@ def main():
         print("🔐 Auth: Bearer Token required")
         print("=" * 50)
         
-        # Executar API do sistema RAG
+        # Executar API do sistema RAG (sem reload para evitar conflitos)
         result = subprocess.run([
-            sys.executable, "-m", "system_rag.api.api"
+            sys.executable, "-m", "uvicorn", "system_rag.api.api:app", 
+            "--host", "0.0.0.0", "--port", "8000"
         ], cwd=os.path.dirname(os.path.abspath(__file__)))
         
         return result.returncode

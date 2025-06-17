@@ -901,7 +901,7 @@ API_KEY=minha-senha-super-secreta-2024
 
 #### Passo 3: Iniciar a API
 ```bash
-python api.py
+python run_system_api.py
 ```
 
 Você verá algo como:
@@ -1378,7 +1378,7 @@ async def verificar_ip(request, call_next):
 
 #### ❌ "Connection refused"
 **Causa**: API não está rodando
-**Solução**: Execute `python api.py`
+**Solução**: Execute `python run_system_api.py`
 
 #### ❌ "401 Unauthorized"
 **Causa**: Senha incorreta
@@ -1640,7 +1640,7 @@ tests/test_api.py::TestSearchEndpoint::test_search_basic FAILED     [30%]
 **Solução:**
 ```bash
 # Iniciar a API primeiro
-python api.py
+python run_system_api.py
 # Em outro terminal, executar os testes
 python tests/run_tests.py --smoke
 ```

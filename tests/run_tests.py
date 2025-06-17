@@ -49,7 +49,7 @@ class TestRunner:
                 return False
         except requests.exceptions.RequestException:
             print(f"❌ API não está acessível em {self.api_url}")
-            print("   Inicie com: python api.py")
+            print("   Inicie com: python run_system_api.py")
             return False
     
     def check_environment(self):

@@ -18,9 +18,10 @@ def main():
         print("🔐 Auth: Bearer Token required")
         print("=" * 50)
         
-        # Executar API de agents
+        # Executar API de agents (sem reload para evitar conflitos)
         result = subprocess.run([
-            sys.executable, "-m", "agents.api.main"
+            sys.executable, "-m", "uvicorn", "agents.api.main:app",
+            "--host", "0.0.0.0", "--port", "8001"
         ], cwd=os.path.dirname(os.path.abspath(__file__)))
         
         return result.returncode

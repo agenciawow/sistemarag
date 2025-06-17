@@ -446,9 +446,16 @@ python ingestion.py
 # 🔍 Busca/consulta (RAG completo)
 python search.py
 
-# 🌐 API RESTful (integração com outros sistemas)
-python api.py
-# Acesse: http://localhost:8000/docs
+# 🌐 APIs RESTful (integração com outros sistemas)
+# Sistema RAG Tradicional (porta 8000)
+python run_system_api.py
+
+# Sistema de Agents IA (porta 8001) 
+python run_agents_api.py
+
+# Acesse: 
+# http://localhost:8000/docs (Sistema RAG)
+# http://localhost:8001/docs (Agents)
 ```
 
 ### 🧪 Comandos de Teste

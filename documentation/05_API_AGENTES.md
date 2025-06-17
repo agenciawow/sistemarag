@@ -16,16 +16,16 @@ API_KEY=sistemarag-api-key-secure-2024
 ### 3. Iniciar API
 ```bash
 # Desenvolvimento
-python api.py
+python run_agents_api.py
 
 # Produção
-uvicorn api:app --host 0.0.0.0 --port 8000 --workers 4
+uvicorn api:app --host 0.0.0.0 --port 8001 --workers 4
 ```
 
 ### 4. Testar
 ```bash
 # Documentação automática
-http://localhost:8000/docs
+http://localhost:8001/docs
 
 # Teste automatizado
 python test_api.py
@@ -40,7 +40,7 @@ python test_api.py
 ```bash
 curl -H "Authorization: Bearer sistemarag-api-key-secure-2024" \
      -H "Content-Type: application/json" \
-     http://localhost:8000/search \
+     http://localhost:8001/search \
      -d '{"query": "Seus produtos?"}'
 ```
 
@@ -71,7 +71,7 @@ curl -H "Authorization: Bearer sistemarag-api-key-secure-2024" \
 ```bash
 curl -X POST \
   -H "Authorization: Bearer sua-api-key" \
-  http://localhost:8000/evaluate
+  http://localhost:8001/evaluate
 ```
 
 **Resposta:**
@@ -126,7 +126,7 @@ curl -X POST \
 
 ### JavaScript
 ```javascript
-const response = await fetch('http://localhost:8000/search', {
+const response = await fetch('http://localhost:8001/search', {
   method: 'POST',
   headers: {
     'Authorization': 'Bearer sua-api-key',
@@ -146,7 +146,7 @@ console.log(data.answer);
 import requests
 
 response = requests.post(
-    'http://localhost:8000/search',
+    'http://localhost:8001/search',
     headers={'Authorization': 'Bearer sua-api-key'},
     json={'query': 'Quais produtos vocês têm?'}
 )
@@ -164,14 +164,14 @@ FROM python:3.12-slim
 WORKDIR /app
 COPY . .
 RUN pip install -r requirements.txt
-EXPOSE 8000
+EXPOSE 8001
 CMD ["uvicorn", "api:app", "--host", "0.0.0.0"]
 ```
 
 ### Nginx
 ```nginx
 location /api/ {
-    proxy_pass http://127.0.0.1:8000/;
+    proxy_pass http://127.0.0.1:8001/;
     proxy_read_timeout 300s;
 }
 ```
@@ -205,7 +205,7 @@ API_KEY=sua-chave-super-segura-aqui-2024-production
 ### Produção
 ```bash
 # Múltiplos workers
-uvicorn api:app --workers 4 --host 0.0.0.0 --port 8000
+uvicorn api:app --workers 4 --host 0.0.0.0 --port 8001
 ```
 
 ---

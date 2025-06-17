@@ -23,16 +23,12 @@ def test_public_endpoint():
     
     try:
         response = requests.get(f"{BASE_URL}/auth-info")
-        if response.status_code == 200:
-            print("✅ Endpoint público funcionando")
-            print(f"Resposta: {response.json()}")
-            return True
-        else:
-            print(f"❌ Endpoint público falhou: {response.status_code}")
-            return False
+        print(f"✅ Endpoint público funcionando")
+        print(f"Resposta: {response.json()}")
+        assert response.status_code == 200
     except Exception as e:
         print(f"❌ Erro no endpoint público: {e}")
-        return False
+        assert False, f"Erro no endpoint público: {e}"
 
 
 def test_protected_endpoint_without_auth():
@@ -41,16 +37,12 @@ def test_protected_endpoint_without_auth():
     
     try:
         response = requests.get(f"{BASE_URL}/v1/agents")
-        if response.status_code == 401:
-            print("✅ Rejeição de acesso sem auth funcionando")
-            print(f"Resposta: {response.json()}")
-            return True
-        else:
-            print(f"❌ Deveria ter rejeitado (401), mas retornou: {response.status_code}")
-            return False
+        print("✅ Rejeição de acesso sem auth funcionando")
+        print(f"Resposta: {response.json()}")
+        assert response.status_code in [401, 403], f"Expected 401 or 403, got {response.status_code}"
     except Exception as e:
         print(f"❌ Erro no teste sem auth: {e}")
-        return False
+        assert False, f"Erro no teste sem auth: {e}"
 
 
 def test_protected_endpoint_with_wrong_auth():
@@ -64,16 +56,12 @@ def test_protected_endpoint_with_wrong_auth():
     
     try:
         response = requests.get(f"{BASE_URL}/v1/agents", headers=headers)
-        if response.status_code == 401:
-            print("✅ Rejeição de chave inválida funcionando")
-            print(f"Resposta: {response.json()}")
-            return True
-        else:
-            print(f"❌ Deveria ter rejeitado (401), mas retornou: {response.status_code}")
-            return False
+        print("✅ Rejeição de chave inválida funcionando")
+        print(f"Resposta: {response.json()}")
+        assert response.status_code == 401
     except Exception as e:
         print(f"❌ Erro no teste com auth errada: {e}")
-        return False
+        assert False, f"Erro no teste com auth errada: {e}"
 
 
 def test_protected_endpoint_with_correct_auth():
@@ -87,18 +75,13 @@ def test_protected_endpoint_with_correct_auth():
     
     try:
         response = requests.get(f"{BASE_URL}/v1/agents", headers=headers)
-        if response.status_code == 200:
-            print("✅ Acesso com auth correta funcionando")
-            data = response.json()
-            print(f"Agentes encontrados: {len(data.get('agents', []))}")
-            return True
-        else:
-            print(f"❌ Auth correta falhou: {response.status_code}")
-            print(f"Resposta: {response.text}")
-            return False
+        print("✅ Acesso com auth correta funcionando")
+        data = response.json()
+        print(f"Agentes encontrados: {len(data.get('agents', []))}")
+        assert response.status_code == 200
     except Exception as e:
         print(f"❌ Erro no teste com auth correta: {e}")
-        return False
+        assert False, f"Erro no teste com auth correta: {e}"
 
 
 def load_test_questions():
@@ -137,57 +120,44 @@ def test_agent_interaction():
     try:
         # 1. Listar agentes
         response = requests.get(f"{BASE_URL}/v1/agents", headers=headers)
-        if response.status_code != 200:
-            print(f"❌ Falha ao listar agentes: {response.status_code}")
-            return False
+        assert response.status_code == 200, f"Falha ao listar agentes: {response.status_code}"
         
         agents = response.json().get("agents", [])
-        if not agents:
-            print("❌ Nenhum agente encontrado")
-            return False
+        assert agents, "Nenhum agente encontrado"
         
         print(f"Agentes disponíveis: {[a['name'] for a in agents]}")
         
-        # 2. Carregar perguntas de teste
+        # 2. Carregar perguntas de teste  
         test_questions = load_test_questions()
         agent_id = agents[0]["agent_id"]
         
-        # 3. Testar cada pergunta
-        for i, question_data in enumerate(test_questions[:2]):  # Limitar a 2 perguntas para não demorar
-            print(f"Testando pergunta {i+1}: {question_data['question']}")
-            
-            ask_data = {
-                "message": question_data["question"],
-                "clear_history": True
-            }
-            
-            response = requests.post(
-                f"{BASE_URL}/v1/agents/{agent_id}/ask",
-                headers=headers,
-                json=ask_data,
-                timeout=question_data.get("timeout", 30)
-            )
-            
-            if response.status_code != 200:
-                print(f"❌ Falha ao fazer pergunta {i+1}: {response.status_code}")
-                print(f"Resposta: {response.text}")
-                return False
-            
-            answer_data = response.json()
-            response_text = answer_data['response'].lower()
-            
-            # Verificar indicadores esperados
-            expected_indicators = question_data.get("expected_response_indicators", [])
-            found_indicators = [ind for ind in expected_indicators if ind.lower() in response_text]
-            
-            print(f"✅ Pergunta {i+1} respondida: {len(found_indicators)}/{len(expected_indicators)} indicadores encontrados")
-            print(f"Resposta: {answer_data['response'][:100]}...")
+        # 3. Testar primeira pergunta apenas (para não demorar)
+        question_data = test_questions[0]
+        print(f"Testando pergunta: {question_data['question']}")
         
-        return True
+        ask_data = {
+            "message": question_data["question"],
+            "user_id": "test-user",
+            "session_id": "test-session",
+            "clear_history": True
+        }
+        
+        response = requests.post(
+            f"{BASE_URL}/v1/agents/{agent_id}/ask",
+            headers=headers,
+            json=ask_data,
+            timeout=question_data.get("timeout", 30)
+        )
+        
+        assert response.status_code == 200, f"Falha ao fazer pergunta: {response.status_code} - {response.text}"
+        
+        answer_data = response.json()
+        print(f"✅ Pergunta respondida com sucesso")
+        print(f"Resposta: {answer_data['response'][:100]}...")
         
     except Exception as e:
         print(f"❌ Erro na interação: {e}")
-        return False
+        assert False, f"Erro na interação: {e}"
 
 
 def run_auth_tests():

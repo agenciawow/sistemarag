@@ -82,7 +82,7 @@ def check_prerequisites(integration_config):
     
     # Verificar se API está rodando
     if not integration_config.has_api_running:
-        pytest.fail(f"API não está rodando em {integration_config.API_BASE_URL}. Inicie com: python api.py")
+        pytest.fail(f"API não está rodando em {integration_config.API_BASE_URL}. Inicie com: python run_system_api.py")
     
     # Verificar variáveis críticas
     required_vars = ['OPENAI_API_KEY', 'VOYAGE_API_KEY', 'ASTRA_DB_APPLICATION_TOKEN']
@@ -521,7 +521,7 @@ if __name__ == "__main__":
     # Verificar pré-requisitos
     if not config.has_api_running:
         print(f"❌ API não está rodando em {config.API_BASE_URL}")
-        print("   Inicie com: python api.py")
+        print("   Inicie com: python run_system_api.py")
         sys.exit(1)
     
     print("✅ API está rodando")

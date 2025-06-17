@@ -31,10 +31,16 @@ pip install pytest pytest-asyncio
    - Configure todas as variáveis no arquivo `.env`
    - Consulte `MANUAL_COMPLETO.md` para instruções detalhadas
 
-3. **Iniciar API (para testes da API e integração):**
+3. **Iniciar APIs (para testes completos):**
 ```bash
-python api.py
+# Sistema RAG Tradicional (porta 8000)
+python run_system_api.py
+
+# Em outro terminal - Sistema de Agents (porta 8001)
+python run_agents_api.py
 ```
+
+> **Nota**: Para testes completos que incluem agents, ambas as APIs devem estar rodando.
 
 ### Comandos de Execução
 
@@ -264,7 +270,7 @@ tests/test_search.py::TestRAGPipeline::test_search_and_answer SKIPPED [30%]
 #### 1. "API não está acessível"
 ```bash
 # Solução: Iniciar a API
-python api.py
+python run_system_api.py
 ```
 
 #### 2. "APIs não configuradas"
