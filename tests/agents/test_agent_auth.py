@@ -7,6 +7,7 @@ Verifica se a autenticação está funcionando corretamente.
 import requests
 import sys
 import os
+import pytest
 
 # Adicionar diretório raiz ao path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
@@ -15,7 +16,9 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 BASE_URL = "http://localhost:8001"
 
 # API Key para testes
-API_KEY = os.getenv("API_KEY", "sistemarag-api-key-2024")
+API_KEY = os.getenv("API_KEY")
+if not API_KEY:
+    pytest.skip("API_KEY n\u00e3o configurada", allow_module_level=True)
 
 def test_public_endpoint():
     """Testa endpoint público (sem autenticação)"""

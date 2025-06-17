@@ -10,6 +10,7 @@ import time
 import logging
 from typing import Optional, List, Dict, Any
 from datetime import datetime
+from urllib.parse import urlparse
 
 from fastapi import FastAPI, HTTPException, Depends, Security, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
@@ -62,10 +63,14 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# Configurar CORS
+# Configurar CORS com lista definida em variável de ambiente
+CORS_ALLOW_ORIGINS = [o.strip() for o in os.getenv("CORS_ALLOW_ORIGINS", "").split(",") if o.strip()]
+if not CORS_ALLOW_ORIGINS:
+    CORS_ALLOW_ORIGINS = ["http://localhost"]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Configure conforme necessário
+    allow_origins=CORS_ALLOW_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -74,8 +79,10 @@ app.add_middleware(
 # Configuração de autenticação
 security = HTTPBearer()
 
-# API Key fixa (carregada do .env)
-API_KEY = os.getenv("API_KEY", "sistemarag-api-key-2024")
+# API Key obrigatória via variável de ambiente
+API_KEY = os.getenv("API_KEY")
+if not API_KEY:
+    raise RuntimeError("API_KEY não configurada")
 
 class APIKeyAuth:
     """Autenticação via API Key fixa"""
@@ -377,9 +384,14 @@ async def ingest_document(
     try:
         logger.info(f"Iniciando ingestão de documento: {request.document_url}")
         
-        # Validar URL básica
+        # Validar URL e domínio permitido
         if not (request.document_url.startswith('http://') or request.document_url.startswith('https://')):
             raise ValueError("URL deve começar com http:// ou https://")
+
+        parsed = urlparse(request.document_url)
+        allowed_domains = [d.strip() for d in os.getenv("INGEST_ALLOWED_DOMAINS", "").split(",") if d.strip()]
+        if allowed_domains and parsed.netloc not in allowed_domains:
+            raise ValueError("Domínio não permitido para ingestão")
         
         # Executar processamento do documento
         result = await run_ingestion_process(request)

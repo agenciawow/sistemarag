@@ -21,8 +21,10 @@ logger = logging.getLogger(__name__)
 # Configuração de autenticação (mesma da API atual)
 security = HTTPBearer()
 
-# API Key fixa (carregada do .env, mesma da API atual)
-API_KEY = os.getenv("API_KEY", "sistemarag-api-key-2024")
+# API Key obrigatória via variável de ambiente
+API_KEY = os.getenv("API_KEY")
+if not API_KEY:
+    raise RuntimeError("API_KEY não configurada")
 
 class APIKeyAuth:
     """Autenticação via API Key fixa (mesma da API atual)"""
@@ -48,10 +50,14 @@ app = FastAPI(
     redoc_url="/redoc"
 )
 
-# Configurar CORS
+# Configurar CORS com lista definida em variável de ambiente
+CORS_ALLOW_ORIGINS = [o.strip() for o in os.getenv("CORS_ALLOW_ORIGINS", "").split(",") if o.strip()]
+if not CORS_ALLOW_ORIGINS:
+    CORS_ALLOW_ORIGINS = ["http://localhost"]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Em produção, especificar domínios
+    allow_origins=CORS_ALLOW_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -79,7 +85,6 @@ async def auth_info():
         "message": "API protegida por autenticação Bearer Token",
         "header_required": "Authorization: Bearer {api_key}",
         "api_key_env": "API_KEY",
-        "default_key": "sistemarag-api-key-2024",
         "docs": "/docs (requer autenticação)"
     }
 
