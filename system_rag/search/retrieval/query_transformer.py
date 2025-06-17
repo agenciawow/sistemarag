@@ -262,13 +262,18 @@ RESPONDA APENAS COM A PERGUNTA TRANSFORMADA:"""
         return output.strip('"\'')
     
     def _safe_fallback(self, message: str) -> str:
-        """Fallback seguro quando tudo mais falha"""
-        document_terms_in_message = any(term in message.lower() for term in self.document_terms)
-        
-        if document_terms_in_message:
+        """Fallback seguro quando a transformação com IA falha"""
+        message_lower = message.lower().strip()
+
+        # Para mensagens curtas sem termos do documento, tratar como saudação
+        if len(message_lower.split()) <= 5 and not any(term in message_lower for term in self.document_terms):
+            return "Not applicable"
+
+        if any(term in message_lower for term in self.document_terms):
             return message
-        else:
-            return f"Sobre o documento: {message}"
+
+        # Caso contrário, assumir que é uma pergunta sobre o documento
+        return f"Sobre o documento: {message}"
     
     def _create_cache_key(self, message: str, chat_history: List[Dict[str, str]]) -> str:
         """Cria chave de cache baseada na mensagem e contexto"""
