@@ -20,6 +20,13 @@ from dotenv import load_dotenv
 # Carregar variáveis de ambiente
 load_dotenv()
 
+# Se não for possível acessar APIs externas, pular toda a suite
+import requests
+try:
+    requests.get("https://api.openai.com", timeout=3)
+except Exception:
+    pytest.skip("Ambiente sem acesso às APIs externas", allow_module_level=True)
+
 # Imports do sistema RAG
 try:
     from system_rag.search.conversational_rag import ModularConversationalRAG
@@ -72,6 +79,9 @@ class TestSearchConfig:
     
     @property
     def has_full_config(self) -> bool:
+        if os.getenv("TEST_MODE") == "true":
+            return False
+
         return all([
             self.has_openai_api,
             self.has_voyage_api,
