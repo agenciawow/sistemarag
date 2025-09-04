@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { useAuth } from './hooks/useAuth'
+import { isSupabaseConfigured } from './lib/supabase'
 import { LoginForm } from './components/LoginForm'
 import { Dashboard } from './components/Dashboard'
 
@@ -9,6 +10,11 @@ function App() {
   const [error, setError] = useState<string | null>(null)
 
   const handleAuth = async (email: string, password: string, isSignUp: boolean) => {
+    if (!isSupabaseConfigured) {
+      setError('Por favor, conecte ao Supabase primeiro clicando no botão "Connect to Supabase" no canto superior direito.')
+      return
+    }
+
     setAuthLoading(true)
     setError(null)
 

@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { supabase, isSupabaseConfigured } from '../lib/supabase';
+import { User, Mail, Lock, Eye, EyeOff, AlertCircle } from 'lucide-react'
 
 interface LoginFormProps {
   onSubmit: (email: string, password: string, isSignUp: boolean) => Promise<void>
@@ -18,11 +18,6 @@ export function LoginForm({ onSubmit, loading, error }: LoginFormProps) {
     await onSubmit(email, password, isSignUp)
   }
 
-    if (!isSupabaseConfigured) {
-      setError('Por favor, conecte ao Supabase primeiro clicando no botão "Connect to Supabase" no canto superior direito.');
-      setLoading(false);
-      return;
-    }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
